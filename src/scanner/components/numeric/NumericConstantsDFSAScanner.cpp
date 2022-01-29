@@ -101,22 +101,26 @@ ScanTokenResult  components::numeric::NumericConstantsDFSAScanner::next(Span spa
             _stream.unget();
         }
 
-        if (
-                res.find('.') != string::npos
-                || res.find('e') != string::npos
-                || res.find('E') != string::npos
-                || res.find('p') != string::npos
-                || res.find('P') != string::npos
-        ) {
-            return new TokenDouble(res, span);
-        } else {
-            if (res.find('x') != string::npos || res.find('X') != string::npos) {
-                return new TokenHex(res, span);
-            }
+        bool isHex = false;
+        bool isDouble = false;
+        for (const char &c: res) {
+            isHex |= c >>= NumericCharType::HEX_DELIM;
+            isDouble |= (c >>= NumericCharType::HEX_DECIMAL_FLOATING_POINT)
+                        || (c >>= NumericCharType::DECIMAL_EXP)
+                        || (c >>= NumericCharType::HEX_EXP);
 
-            return new TokenDecimal(res, span);
+            if (isDouble) {
+                break;
+            }
         }
 
+        if (isDouble) {
+            return new TokenDouble(res, span);
+        } else if (isHex) {
+            return new TokenHex(res, span);
+        } else {
+            return new TokenDecimal(res, span);
+        }
     } catch (std::runtime_error& err){
         return new ScannerError({1, 1});
     }
