@@ -31,7 +31,7 @@ namespace aux::fsa {
 
         explicit State(std::basic_istream<CharT, Traits> &stream) : _stream(stream), _transitionTable({}) {}
 
-        inline bool addState(Predicate<CharT> input, std::shared_ptr<ConformingStateType> state) {
+        inline bool addTransition(Predicate<CharT> input, std::shared_ptr<ConformingStateType> state) {
             if (_transitionTable.contains(input)) {
                 return false;
             } else {
@@ -40,7 +40,7 @@ namespace aux::fsa {
             }
         }
 
-        inline bool removeState(Predicate<CharT> input) {
+        inline bool removeTransition(Predicate<CharT> input) {
             if (_transitionTable.contains(input)) {
                 _transitionTable.erase(input);
                 return true;
@@ -53,20 +53,17 @@ namespace aux::fsa {
             ResultType result;
             CharT curr;
 
-            if (get(&curr)) {
-
-                for (const auto&[matcher, nextState]: _transitionTable) {
-                    if (matcher(curr)) {
-                        result += curr;
-                        result += nextState->start();
-                        return result;
-                    }
+            get(&curr);
+            for (const auto&[matcher, nextState]: _transitionTable) {
+                if (matcher(curr)) {
+                    result += curr;
+                    result += nextState->start();
+                    return result;
                 }
-
             }
 
             unGet();
-            throw PatternMatchingException("Pattern matching failed on " + curr);
+            throw PatternMatchingException("Pattern matching failed on: " + std::to_string(curr));
         }
 
     protected:
@@ -77,13 +74,12 @@ namespace aux::fsa {
             return _stream.peek() == Traits::eof();
         }
 
-        inline bool get(CharT *curr) {
+        inline void get(CharT *curr) {
             if (isEof()) {
-                return false;
+                *curr = Traits::eof();
+            } else {
+                _stream.get(*curr);
             }
-
-            _stream.get(*curr);
-            return true;
         }
 
         inline void unGet() {

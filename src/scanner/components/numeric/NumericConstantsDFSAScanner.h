@@ -6,7 +6,6 @@
 #define AUX_NUMERICCONSTANTSDFSASCANNER_H
 
 #include "../../ScanTokenResult.h"
-#include "../../characters/Numeric.h"
 #include "../../../finite_state_automata/State.h"
 #include "../../../finite_state_automata/PatternMatchingException.h"
 #include <map>

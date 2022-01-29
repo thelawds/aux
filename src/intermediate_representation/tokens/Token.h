@@ -17,7 +17,8 @@ namespace aux::ir::tokens {
         NUMERIC,
         STRING,
         OPERATOR,
-        DELIMITER
+        DELIMITER,
+        COMMENT
     };
 
     enum class Keyword {

@@ -21,14 +21,12 @@ namespace aux::scanner::components::characters {
         HEX_EXP,
         PLUS_MINUS,
         HEX_DECIMAL_FLOATING_POINT,
-
-        FINISHING_DELIMITER
+        ANY
     };
-
 
 }
 
-inline bool operator==(const char &c, aux::scanner::components::characters::NumericCharType type){
+inline bool operator>>=(const char &c, aux::scanner::components::characters::NumericCharType type) {
     switch (type) {
         case aux::scanner::components::characters::NumericCharType::ZERO:
             return c == '0';
@@ -39,7 +37,7 @@ inline bool operator==(const char &c, aux::scanner::components::characters::Nume
         case aux::scanner::components::characters::NumericCharType::ALL_HEX:
             return std::isdigit(c) || ('A' <= c && c <= 'F') || ('a' <= c && c <= 'f');
         case aux::scanner::components::characters::NumericCharType::POSITIVE_HEX:
-            return ((std::isdigit(c) || ('A' <= c && c <= 'F') || ('a' <= c && c <= 'f')) && c != '0');
+            return (c >>= aux::scanner::components::characters::NumericCharType::ALL_HEX) && c != '0';
         case aux::scanner::components::characters::NumericCharType::HEX_DELIM:
             return c == 'x' || c == 'X';
         case aux::scanner::components::characters::NumericCharType::DECIMAL_EXP:
@@ -50,11 +48,18 @@ inline bool operator==(const char &c, aux::scanner::components::characters::Nume
             return c == '+' || c == '-';
         case aux::scanner::components::characters::NumericCharType::HEX_DECIMAL_FLOATING_POINT:
             return c == '.';
-        case aux::scanner::components::characters::NumericCharType::FINISHING_DELIMITER:
-
+        case aux::scanner::components::characters::NumericCharType::ANY:
+            return (c >>= aux::scanner::components::characters::NumericCharType::ALL_HEX)
+                   || (c == 'x' || c == 'X') || (c == 'e' || c == 'E') || (c == 'p' || c == 'P')
+                   || (c == '.') || (c == '+' || c == '-');
         default:
             return false;
     }
+}
+
+template<aux::scanner::components::characters::NumericCharType type>
+bool satisfies(char c) {
+    return c >>= type;
 }
 
 #endif //AUX_NUMERIC_H
