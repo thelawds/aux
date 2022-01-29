@@ -93,7 +93,7 @@ components::numeric::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(is
     S_Hex_Double_P_All->addTransition(delimiter(ANY), S_Finish);
 }
 
-ScanTokenResult  components::numeric::NumericConstantsDFSAScanner::next(Span span) const {
+ScanTokenResult components::numeric::NumericConstantsDFSAScanner::next(Span span) const {
     try {
         string res = _startingState->start();
         if (!_stream.eof()) {
@@ -115,14 +115,14 @@ ScanTokenResult  components::numeric::NumericConstantsDFSAScanner::next(Span spa
         }
 
         if (isDouble) {
-            return new TokenDouble(res, span);
+            return {make_shared<TokenDouble>(res, span)};
         } else if (isHex) {
-            return new TokenHex(res, span);
+            return {make_shared<TokenHex>(res, span)};
         } else {
-            return new TokenDecimal(res, span);
+            return {make_shared<TokenDecimal>(res, span)};
         }
-    } catch (std::runtime_error& err){
-        return new ScannerError({1, 1});
+    } catch (std::runtime_error &err) {
+        return {make_shared<ScannerError>(span)};
     }
 }
 

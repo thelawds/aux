@@ -6,6 +6,7 @@
 #define AUX_SCANTOKENRESULT_H
 
 #include <string>
+#include <memory>
 #include "../exception/ScannerError.h"
 #include "../intermediate_representation/tokens/Token.h"
 #include "../util/Defines.h"
@@ -13,28 +14,21 @@
 namespace aux::scanner{
 
     struct ScanTokenResult {
-        ScanTokenResult(
-                bool result,
-                exception::ScannerError *scannerError,
-                ir::tokens::Token *token
-        );
+        IMPLICIT ScanTokenResult(std::shared_ptr<exception::ScannerError> scannerError);
 
-        IMPLICIT ScanTokenResult(exception::ScannerError *scannerError);
-
-        IMPLICIT ScanTokenResult(ir::tokens::Token *token);
+        IMPLICIT ScanTokenResult(std::shared_ptr<ir::tokens::Token> token);
 
         IMPLICIT operator bool() const; // NOLINT(google-explicit-constructor)
 
         [[nodiscard]]
-        aux::exception::ScannerError *getScannerError() const;
+        std::shared_ptr<aux::exception::ScannerError> getScannerError() const;
 
         [[nodiscard]]
-        aux::ir::tokens::Token *getToken() const;
-
+        std::shared_ptr<aux::ir::tokens::Token> getToken() const;
     private:
         const bool _result;
-        aux::exception::ScannerError *const _scannerError;
-        aux::ir::tokens::Token *const _token;
+        std::shared_ptr<aux::exception::ScannerError> _scannerError;
+        std::shared_ptr<aux::ir::tokens::Token> _token;
     };
 
 }
