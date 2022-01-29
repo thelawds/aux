@@ -132,6 +132,8 @@ bool components::numeric::NumericConstantsDFSAScanner::canProcessNextToken() con
             _stream.unget();
             return true;
         }
+
+        _stream.unget();
     }
 
     return false;
