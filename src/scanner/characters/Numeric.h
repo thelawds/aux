@@ -9,7 +9,7 @@
 #include "Delimiters.h"
 #include "../../util/Defines.h"
 
-namespace aux::scanner::components::characters {
+namespace aux::scanner::characters {
 
     enum class NumericCharType {
         ZERO,
@@ -25,30 +25,30 @@ namespace aux::scanner::components::characters {
         ANY
     };
 
-    inline bool operator>>=(const char &c, aux::scanner::components::characters::NumericCharType type) {
+    inline bool operator>>=(const char &c, NumericCharType type) {
         switch (type) {
-            case aux::scanner::components::characters::NumericCharType::ZERO:
+            case NumericCharType::ZERO:
                 return c == '0';
-            case aux::scanner::components::characters::NumericCharType::ALL_DECIMAL:
+            case NumericCharType::ALL_DECIMAL:
                 return std::isdigit(c);
-            case aux::scanner::components::characters::NumericCharType::POSITIVE_DECIMAL:
+            case NumericCharType::POSITIVE_DECIMAL:
                 return c != '0' && std::isdigit(c);
-            case aux::scanner::components::characters::NumericCharType::ALL_HEX:
+            case NumericCharType::ALL_HEX:
                 return std::isdigit(c) || ('A' <= c && c <= 'F') || ('a' <= c && c <= 'f');
-            case aux::scanner::components::characters::NumericCharType::POSITIVE_HEX:
-                return (c >>= aux::scanner::components::characters::NumericCharType::ALL_HEX) && c != '0';
-            case aux::scanner::components::characters::NumericCharType::HEX_DELIM:
+            case NumericCharType::POSITIVE_HEX:
+                return (c >>= NumericCharType::ALL_HEX) && c != '0';
+            case NumericCharType::HEX_DELIM:
                 return c == 'x' || c == 'X';
-            case aux::scanner::components::characters::NumericCharType::DECIMAL_EXP:
+            case NumericCharType::DECIMAL_EXP:
                 return c == 'e' || c == 'E';
-            case aux::scanner::components::characters::NumericCharType::HEX_EXP:
+            case NumericCharType::HEX_EXP:
                 return c == 'p' || c == 'P';
-            case aux::scanner::components::characters::NumericCharType::PLUS_MINUS:
+            case NumericCharType::PLUS_MINUS:
                 return c == '+' || c == '-';
-            case aux::scanner::components::characters::NumericCharType::HEX_DECIMAL_FLOATING_POINT:
+            case NumericCharType::HEX_DECIMAL_FLOATING_POINT:
                 return c == '.';
-            case aux::scanner::components::characters::NumericCharType::ANY:
-                return (c >>= aux::scanner::components::characters::NumericCharType::ALL_HEX)
+            case NumericCharType::ANY:
+                return (c >>= NumericCharType::ALL_HEX)
                        || (c == 'x' || c == 'X') || (c == 'e' || c == 'E') || (c == 'p' || c == 'P')
                        || (c == '.') || (c == '+' || c == '-');
             default:
@@ -56,7 +56,7 @@ namespace aux::scanner::components::characters {
         }
     }
 
-    template<aux::scanner::components::characters::NumericCharType type>
+    template<NumericCharType type>
     bool satisfies(char c) {
         return c >>= type;
     }

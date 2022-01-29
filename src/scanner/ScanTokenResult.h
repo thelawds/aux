@@ -14,9 +14,9 @@
 namespace aux::scanner{
 
     struct ScanTokenResult {
-        IMPLICIT ScanTokenResult(std::shared_ptr<exception::ScannerError> scannerError);
+        IMPLICIT ScanTokenResult(std::shared_ptr<exception::ScannerError> scannerError); // NOLINT(google-explicit-constructor)
 
-        IMPLICIT ScanTokenResult(std::shared_ptr<ir::tokens::Token> token);
+        IMPLICIT ScanTokenResult(std::shared_ptr<ir::tokens::Token> token); // NOLINT(google-explicit-constructor)
 
         IMPLICIT operator bool() const; // NOLINT(google-explicit-constructor)
 

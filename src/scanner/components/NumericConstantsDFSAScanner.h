@@ -5,13 +5,13 @@
 #ifndef AUX_NUMERICCONSTANTSDFSASCANNER_H
 #define AUX_NUMERICCONSTANTSDFSASCANNER_H
 
-#include "../IScannerComponent.h"
-#include "../../../finite_state_automata/State.h"
-#include "../../../finite_state_automata/PatternMatchingException.h"
+#include "IScannerComponent.h"
+#include "../../finite_state_automata/State.h"
+#include "../../finite_state_automata/PatternMatchingException.h"
 #include <map>
 #include <string>
 
-namespace aux::scanner::components::numeric {
+namespace aux::scanner::components{
 
     struct NumericConstantsDFSAScanner : IScannerComponent{
         explicit NumericConstantsDFSAScanner(std::istream &stream);

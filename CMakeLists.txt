@@ -19,7 +19,7 @@ add_executable(
         src/Main.cpp
         src/intermediate_representation/tokens/Token.cpp
         src/scanner/ScanTokenResult.cpp
-        src/scanner/components/numeric/NumericConstantsDFSAScanner.cpp
+        src/scanner/components/NumericConstantsDFSAScanner.cpp
         src/scanner/components/IScannerComponent.h)
 
 add_executable(
@@ -27,7 +27,7 @@ add_executable(
         test/ScannerTest.cpp
         src/intermediate_representation/tokens/Token.cpp
         src/scanner/ScanTokenResult.cpp
-        src/scanner/components/numeric/NumericConstantsDFSAScanner.cpp
+        src/scanner/components/NumericConstantsDFSAScanner.cpp
 )
 
 # Setting Up Testing Framework

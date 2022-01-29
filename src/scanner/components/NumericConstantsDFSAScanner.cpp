@@ -3,21 +3,20 @@
 //
 
 #include "NumericConstantsDFSAScanner.h"
-#include "../../characters/Numeric.h"
-#include "../../characters/Delimiters.h"
+#include "../characters/Delimiters.h"
+#include "../characters/Numeric.h"
 #include <iostream>
-#include <unordered_set>
 
 
-using namespace aux::scanner::components::characters;
-using namespace aux::scanner::components::numeric;
+using namespace aux::scanner::characters;
+using namespace aux::scanner::components;
 using namespace aux::ir::tokens;
 using namespace aux::exception;
 using namespace aux::scanner;
 using namespace aux::fsa;
 using namespace std;
 
-components::numeric::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &stream) : _stream(stream) {
+components::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &stream) : _stream(stream) {
     _startingState = make_shared<BasicFsaState>(stream);
     auto S_Finish = make_shared<BasicFsaFinalState>(stream);
 
@@ -93,7 +92,7 @@ components::numeric::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(is
     S_Hex_Double_P_All->addTransition(delimiter(ANY), S_Finish);
 }
 
-ScanTokenResult components::numeric::NumericConstantsDFSAScanner::next(Span span) const {
+ScanTokenResult components::NumericConstantsDFSAScanner::next(Span span) const {
     try {
         string res = _startingState->start();
         if (!_stream.eof()) {
@@ -126,7 +125,7 @@ ScanTokenResult components::numeric::NumericConstantsDFSAScanner::next(Span span
     }
 }
 
-bool components::numeric::NumericConstantsDFSAScanner::canProcessNextToken() const {
+bool components::NumericConstantsDFSAScanner::canProcessNextToken() const {
     char curr;
 
     if (_stream.peek() != -1) {

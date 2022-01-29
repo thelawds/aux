@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_set>
 
-namespace aux::scanner::components::characters {
+namespace aux::scanner::characters {
 
     enum class DelimiterCharType {
         OPERATOR,
@@ -19,30 +19,30 @@ namespace aux::scanner::components::characters {
     };
 
 
-    inline bool operator>>=(const char &c, aux::scanner::components::characters::DelimiterCharType type) {
+    inline bool operator>>=(const char &c, DelimiterCharType type) {
         static std::unordered_set<char> operators{'+', '-', '*', '/', '%', '^', '#', '&', '~', '|', '<', '>', '='};
         static std::unordered_set<char> delimiters{'(', ')', '{', '}', '[', ']', ':', ';', ',', '.'};
 
         switch (type) {
-            case aux::scanner::components::characters::DelimiterCharType::OPERATOR:
+            case DelimiterCharType::OPERATOR:
                 return operators.contains(c);
-            case aux::scanner::components::characters::DelimiterCharType::DELIMITER:
+            case DelimiterCharType::DELIMITER:
                 return delimiters.contains(c);
-            case aux::scanner::components::characters::DelimiterCharType::SPACE:
+            case DelimiterCharType::SPACE:
                 return std::isspace(c);
-            case aux::scanner::components::characters::DelimiterCharType::END_OF_FILE:
+            case DelimiterCharType::END_OF_FILE:
                 return c == std::char_traits<char>::eof();
-            case aux::scanner::components::characters::DelimiterCharType::ANY:
-                return (c >>= aux::scanner::components::characters::DelimiterCharType::OPERATOR)
-                       || (c >>= aux::scanner::components::characters::DelimiterCharType::DELIMITER)
-                       || (c >>= aux::scanner::components::characters::DelimiterCharType::SPACE)
-                       || (c >>= aux::scanner::components::characters::DelimiterCharType::END_OF_FILE);
+            case DelimiterCharType::ANY:
+                return (c >>= DelimiterCharType::OPERATOR)
+                       || (c >>= DelimiterCharType::DELIMITER)
+                       || (c >>= DelimiterCharType::SPACE)
+                       || (c >>= DelimiterCharType::END_OF_FILE);
             default:
                 return false;
         }
     }
 
-    template<aux::scanner::components::characters::DelimiterCharType type>
+    template<DelimiterCharType type>
     bool satisfies(char c) {
         return c >>= type;
     }

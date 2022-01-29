@@ -2,12 +2,12 @@
 
 #include <string>
 #include <vector>
-#include "../src/scanner/components/numeric/NumericConstantsDFSAScanner.h"
+#include "../src/scanner/components/NumericConstantsDFSAScanner.h"
 
 using namespace std;
 using namespace aux::scanner;
 using namespace aux::ir::tokens;
-using namespace aux::scanner::components::numeric;
+using namespace aux::scanner::components;
 
 
 TEST(ScannerTest, NumericConstantsScannerPositiveTest) {
