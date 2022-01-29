@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <unordered_map>
+#include "../../util/Defines.h"
 
 namespace aux::ir::tokens {
 
@@ -120,9 +121,10 @@ namespace aux::ir::tokens {
         const Keyword _keyword;
     };
 
-    template<typename T>
+    template<typename T, Function<const std::string&, T> converter>
     struct TokenNumeric : Token {
-        TokenNumeric(T value, const Span &span) : Token(span), _value(value) {}
+        TokenNumeric(std::string value, const Span &span)
+                : Token(span), _string_value(value), _value(converter(value)) {}
 
         [[nodiscard]]
         inline TokenType getType() const override {
@@ -133,16 +135,34 @@ namespace aux::ir::tokens {
             return _value;
         };
 
+        [[nodiscard]]
+        inline std::string getRawValue() const {
+            return _string_value;
+        }
+
     private:
         T _value;
+        std::string _string_value;
     };
 
+    template<uint16_t base>
+    inline uint64_t toInteger(const std::string& string){
+        return std::stoll(string, nullptr, base);
+    }
+
+    inline long double toLongDouble(const std::string &string){
+        return std::stold(string);
+    }
+
+    using TokenDecimal = TokenNumeric<uint64_t, toInteger<10>>;
+    using TokenHex = TokenNumeric<uint64_t, toInteger<16>>;
+    using TokenDouble = TokenNumeric<long double, toLongDouble>;
 
     // todo: finish all after that line:
     // -----------------------------
 
-    struct TokenString : Token {
-        explicit TokenString(const Span &span);
+    struct TokenStringLiteral : Token {
+        explicit TokenStringLiteral(const Span &span);
 
         [[nodiscard]] TokenType getType() const override;
     };
@@ -158,9 +178,6 @@ namespace aux::ir::tokens {
 
         [[nodiscard]] TokenType getType() const override;
     };
-
-    using TokenInteger = TokenNumeric<int64_t>;
-    using TokenDouble = TokenNumeric<long double>;
 
 }
 

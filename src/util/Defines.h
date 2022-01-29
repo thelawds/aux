@@ -7,4 +7,10 @@
 
 #define IMPLICIT // specifically to perform implicit type conversion
 
+template<typename InputType>
+using Predicate = bool (*)(InputType);
+
+template<typename IN, typename OUT>
+using Function = OUT (*)(IN);
+
 #endif //AUX_DEFINES_H

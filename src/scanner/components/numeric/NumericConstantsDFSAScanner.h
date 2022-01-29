@@ -5,7 +5,7 @@
 #ifndef AUX_NUMERICCONSTANTSDFSASCANNER_H
 #define AUX_NUMERICCONSTANTSDFSASCANNER_H
 
-#include "../../ScanTokenResult.h"
+#include "../IScannerComponent.h"
 #include "../../../finite_state_automata/State.h"
 #include "../../../finite_state_automata/PatternMatchingException.h"
 #include <map>
@@ -13,10 +13,14 @@
 
 namespace aux::scanner::components::numeric {
 
-    struct NumericConstantsDFSAScanner {
+    struct NumericConstantsDFSAScanner : IScannerComponent{
         explicit NumericConstantsDFSAScanner(std::istream &stream);
 
-        [[nodiscard]] ScanTokenResult next() const;
+        [[nodiscard]]
+        ScanTokenResult next(ir::tokens::Span span) const override;
+
+        [[nodiscard]]
+        bool canProcessNextToken() const override;
 
     private:
         std::istream &_stream;

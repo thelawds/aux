@@ -22,3 +22,7 @@ ScannerError *ScanTokenResult::getScannerError() const {
 Token *ScanTokenResult::getToken() const {
     return this->_token;
 }
+
+ScanTokenResult::ScanTokenResult(ScannerError *scannerError) : ScanTokenResult(false, scannerError, nullptr) {}
+
+ScanTokenResult::ScanTokenResult(Token *token) : ScanTokenResult(true, nullptr, token) {}

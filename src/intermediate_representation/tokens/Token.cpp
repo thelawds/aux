@@ -43,9 +43,9 @@ const Keyword &TokenKeyword::getKeyword() {
 
 TokenKeyword::~TokenKeyword() = default;
 
-TokenString::TokenString(const Span &span) : Token(span) {}
+TokenStringLiteral::TokenStringLiteral(const Span &span) : Token(span) {}
 
-TokenType TokenString::getType() const {
+TokenType TokenStringLiteral::getType() const {
     return TokenType::STRING;
 }
 

@@ -17,18 +17,9 @@ using namespace aux::scanner;
 using namespace aux::fsa;
 using namespace std;
 
-using NumericFsaState = State<string>;
-using NumericFsaFinalState = FinalState<string>;
-
-
-#define DeclareIntermediateState(_STATE_NAME) auto (_STATE_NAME) = make_shared<NumericFsaState>(stream)
-#define numeric(_Name) satisfies<NumericCharType::_Name>
-#define delimiter(_Name) satisfies<DelimiterCharType::_Name>
-
-
-NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &stream) : _stream(stream) {
-    _startingState = make_shared<NumericFsaState>(stream);
-    auto S_Finish = make_shared<NumericFsaFinalState>(stream);
+components::numeric::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &stream) : _stream(stream) {
+    _startingState = make_shared<BasicFsaState>(stream);
+    auto S_Finish = make_shared<BasicFsaFinalState>(stream);
 
     // Declare Decimal Number States:
     DeclareIntermediateState(S_0);
@@ -47,7 +38,6 @@ NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &stream) : _str
     DeclareIntermediateState(S_Hex_Double_P);
     DeclareIntermediateState(S_Hex_Double_P_Pm);
     DeclareIntermediateState(S_Hex_Double_P_All);
-
 
     // Starting State Transitions:
     _startingState->addTransition(numeric(ZERO), S_0);
@@ -103,7 +93,7 @@ NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &stream) : _str
     S_Hex_Double_P_All->addTransition(delimiter(ANY), S_Finish);
 }
 
-ScanTokenResult NumericConstantsDFSAScanner::next() const {
+ScanTokenResult  components::numeric::NumericConstantsDFSAScanner::next(Span span) const {
     try {
         string res = _startingState->start();
         if (!_stream.eof()) {
@@ -118,36 +108,31 @@ ScanTokenResult NumericConstantsDFSAScanner::next() const {
                 || res.find('p') != string::npos
                 || res.find('P') != string::npos
         ) {
-            return {
-                    true,
-                    nullptr,
-                    new TokenDouble(
-                            stold(res, nullptr),
-                            {1, 1}
-                    )
-            };
+            return new TokenDouble(res, span);
         } else {
-            int base = 10;
-
             if (res.find('x') != string::npos || res.find('X') != string::npos) {
-                base = 16;
+                return new TokenHex(res, span);
             }
 
-            return {
-                    true,
-                    nullptr,
-                    new TokenInteger(
-                            stoll(res, nullptr, base),
-                            {1, 1}
-                    )
-            };
+            return new TokenDecimal(res, span);
         }
 
     } catch (std::runtime_error& err){
-        return {
-                false,
-                new ScannerError({1, 1}),
-                nullptr
-        };
+        return new ScannerError({1, 1});
     }
+}
+
+bool components::numeric::NumericConstantsDFSAScanner::canProcessNextToken() const {
+    char curr;
+
+    if (_stream.peek() != -1) {
+        _stream.get(curr);
+
+        if (isdigit(curr) || curr == '.' && isdigit(_stream.peek())) {
+            _stream.unget();
+            return true;
+        }
+    }
+
+    return false;
 }

@@ -18,35 +18,37 @@ namespace aux::scanner::components::characters {
         ANY
     };
 
-}
 
+    inline bool operator>>=(const char &c, aux::scanner::components::characters::DelimiterCharType type) {
+        static std::unordered_set<char> operators{'+', '-', '*', '/', '%', '^', '#', '&', '~', '|', '<', '>', '='};
+        static std::unordered_set<char> delimiters{'(', ')', '{', '}', '[', ']', ':', ';', ',', '.'};
 
-inline bool operator>>=(const char &c, aux::scanner::components::characters::DelimiterCharType type) {
-    static std::unordered_set<char> operators{'+', '-', '*', '/', '%', '^', '#', '&', '~', '|', '<', '>', '='};
-    static std::unordered_set<char> delimiters{'(', ')', '{', '}', '[', ']', ':', ';', ',', '.'};
-
-    switch (type) {
-        case aux::scanner::components::characters::DelimiterCharType::OPERATOR:
-            return operators.contains(c);
-        case aux::scanner::components::characters::DelimiterCharType::DELIMITER:
-            return delimiters.contains(c);
-        case aux::scanner::components::characters::DelimiterCharType::SPACE:
-            return std::isspace(c);
-        case aux::scanner::components::characters::DelimiterCharType::END_OF_FILE:
-            return c == std::char_traits<char>::eof();
-        case aux::scanner::components::characters::DelimiterCharType::ANY:
-            return (c >>= aux::scanner::components::characters::DelimiterCharType::OPERATOR)
-                   || (c >>= aux::scanner::components::characters::DelimiterCharType::DELIMITER)
-                   || (c >>= aux::scanner::components::characters::DelimiterCharType::SPACE)
-                   || (c >>= aux::scanner::components::characters::DelimiterCharType::END_OF_FILE);
-        default:
-            return false;
+        switch (type) {
+            case aux::scanner::components::characters::DelimiterCharType::OPERATOR:
+                return operators.contains(c);
+            case aux::scanner::components::characters::DelimiterCharType::DELIMITER:
+                return delimiters.contains(c);
+            case aux::scanner::components::characters::DelimiterCharType::SPACE:
+                return std::isspace(c);
+            case aux::scanner::components::characters::DelimiterCharType::END_OF_FILE:
+                return c == std::char_traits<char>::eof();
+            case aux::scanner::components::characters::DelimiterCharType::ANY:
+                return (c >>= aux::scanner::components::characters::DelimiterCharType::OPERATOR)
+                       || (c >>= aux::scanner::components::characters::DelimiterCharType::DELIMITER)
+                       || (c >>= aux::scanner::components::characters::DelimiterCharType::SPACE)
+                       || (c >>= aux::scanner::components::characters::DelimiterCharType::END_OF_FILE);
+            default:
+                return false;
+        }
     }
+
+    template<aux::scanner::components::characters::DelimiterCharType type>
+    bool satisfies(char c) {
+        return c >>= type;
+    }
+
 }
 
-template<aux::scanner::components::characters::DelimiterCharType type>
-bool satisfies(char c) {
-    return c >>= type;
-}
+#define delimiter(_Name) satisfies<DelimiterCharType::_Name>
 
 #endif //AUX_DELIMITERS_H

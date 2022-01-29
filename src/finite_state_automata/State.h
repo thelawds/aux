@@ -9,11 +9,9 @@
 #include <map>
 #include <memory>
 #include "PatternMatchingException.h"
+#include "../util/Defines.h"
 
 namespace aux::fsa {
-
-    template<typename InputType>
-    using Predicate = bool (*)(InputType);
 
     template<
             typename ResultType, // ResultType += ResultType; ResultType += InputPredicate; ResultType()
@@ -101,6 +99,10 @@ namespace aux::fsa {
         }
     };
 
+    using BasicFsaState = State<std::string>;
+    using BasicFsaFinalState = FinalState<std::string>;
 }
+
+#define DeclareIntermediateState(_STATE_NAME) auto (_STATE_NAME) = make_shared<BasicFsaState>(stream)
 
 #endif //AUX_STATE_H

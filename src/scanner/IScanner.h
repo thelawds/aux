@@ -7,13 +7,15 @@
 
 #include <vector>
 #include <fstream>
+#include <memory>
 #include "../intermediate_representation/tokens/Token.h"
 
 namespace aux::scanner {
 
     struct IScanner {
 
-        [[nodiscard]] virtual std::vector<aux::ir::tokens::Token *> scan() const = 0;
+        [[nodiscard]]
+        virtual std::shared_ptr<ir::tokens::Token> next() const = 0;
 
     };
 

@@ -30,7 +30,7 @@ TEST(ScannerTest, NumericConstantsScannerPositiveTest) {
     stringstream stream(str);
     NumericConstantsDFSAScanner scanner{stream};
     while (stream.peek() != -1) {
-        auto result = scanner.next();
+        auto result = scanner.next({0, 0});
         EXPECT_TRUE(result);
         stream.get();
     }
@@ -48,7 +48,7 @@ TEST(ScannerTest, NumericConstantsScannerNegativeTest) {
     for (const auto &str: inputs) {
         stringstream stream(str);
         NumericConstantsDFSAScanner scanner{stream};
-        auto result = scanner.next();
+        auto result = scanner.next({0, 0});
         EXPECT_FALSE(result);
     }
 }

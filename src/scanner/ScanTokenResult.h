@@ -19,6 +19,9 @@ namespace aux::scanner{
                 ir::tokens::Token *token
         );
 
+        IMPLICIT ScanTokenResult(exception::ScannerError *scannerError);
+
+        IMPLICIT ScanTokenResult(ir::tokens::Token *token);
 
         IMPLICIT operator bool() const; // NOLINT(google-explicit-constructor)
 
