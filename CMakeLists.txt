@@ -14,8 +14,23 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 # Setting Executables:
-add_executable(aux src/main.cpp)
-add_executable(tests tests/hello_test.cpp)
+add_executable(
+        aux
+        src/Main.cpp
+        src/intermediate_representation/tokens/Token.cpp
+        src/scanner/ScanTokenResult.cpp
+        src/scanner/components/numeric/NumericConstantsDFSAScanner.cpp
+        src/scanner/characters/Delimiters.cpp
+)
+
+add_executable(
+        tests
+        test/ScannerTest.cpp
+        src/intermediate_representation/tokens/Token.cpp
+        src/scanner/ScanTokenResult.cpp
+        src/scanner/components/numeric/NumericConstantsDFSAScanner.cpp
+        src/scanner/characters/Delimiters.cpp
+)
 
 # Setting Up Testing Framework
 target_link_libraries(tests gtest_main)
