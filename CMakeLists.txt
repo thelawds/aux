@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
-project(aux)
+project(aux VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED 20)
+
+find_package(glog 0.6.0 REQUIRED)
+find_package(gflags REQUIRED)
 
 # Include tests framework:
 include(FetchContent)
@@ -14,10 +18,40 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 # Setting Executables:
-add_executable(aux src/main.cpp)
-add_executable(tests tests/hello_test.cpp)
+add_executable(
+        aux
+        src/Main.cpp
+        src/intermediate_representation/tokens/Token.cpp
+        src/scanner/ScanTokenResult.cpp
+        src/scanner/components/NumericConstantsDFSAScanner.cpp
+        src/scanner/components/StringLiteralScanner.cpp
+        src/scanner/components/OperatorScanner.cpp
+        src/scanner/components/IdentifierAndKeywordScanner.cpp
+        src/scanner/components/CommentsScanner.cpp
+        src/scanner/input_stream/PreprocessedFileInputStream.cpp
+        src/scanner/ModularScanner.cpp
+)
 
-# Setting Up Testing Framework
-target_link_libraries(tests gtest_main)
+add_executable(
+        tests
+        test/ScannerComponentsTest.cpp
+        src/intermediate_representation/tokens/Token.cpp
+        src/scanner/ScanTokenResult.cpp
+        src/scanner/components/NumericConstantsDFSAScanner.cpp
+        src/scanner/components/StringLiteralScanner.cpp
+        src/scanner/components/OperatorScanner.cpp
+        src/scanner/components/IdentifierAndKeywordScanner.cpp
+        src/scanner/components/CommentsScanner.cpp
+        src/scanner/input_stream/PreprocessedFileInputStream.cpp
+        src/scanner/ModularScanner.cpp
+        test/ModularScannerTest.cpp
+)
+
+# Setting Up Frameworks
+# Testing
+target_link_libraries(tests gtest_main glog::glog)
 include(GoogleTest)
 gtest_discover_tests(tests)
+
+# Application
+target_link_libraries(aux glog::glog gflags)
