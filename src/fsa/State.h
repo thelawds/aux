@@ -116,6 +116,7 @@ namespace aux::fsa {
         explicit FinalState(std::basic_istream<CharT, Traits> &stream) : State<ResultType, CharT, Traits>(stream) {}
 
         ResultType start() override {
+            this->unGet();
             return ResultType{};
         }
     };

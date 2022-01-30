@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "../src/scanner/components/NumericConstantsDFSAScanner.h"
+#include "../src/scanner/components/IdentifierAndKeywordScanner.h"
 #include "../src/scanner/components/StringLiteralScanner.h"
 #include "../src/scanner/components/OperatorScanner.h"
 
@@ -22,19 +23,17 @@ TEST(ScannerTest, NumericConstantsScannerPositiveTest) {
             "0x0.1E", "0xA23p-4", "0X1.921FB54442D18P+1"
     };
 
-    string str;
-    for (const string &input: inputs) {
-        size_t i = random() % delimiters.size();
-        str += input;
-        str += delimiters[i];
-    }
+    for (string input: inputs) {
+        input += delimiters[random() % delimiters.size()];
+        stringstream stream(input);
+        NumericConstantsDFSAScanner scanner{stream};
 
-    stringstream stream{str};
-    NumericConstantsDFSAScanner scanner{stream};
-    while (stream.peek() != -1) {
-        auto result = scanner.next({0, 0});
+        Span span{0, 0};
+        auto result = scanner.next(span);
         EXPECT_TRUE(result);
-        stream.get();
+        printf(
+                "Token result for String (%s): (%s)\n", input.c_str(), result.getToken().c_str()
+        );
     }
 
 }
@@ -94,5 +93,35 @@ TEST(ScannerTest, OperatorScannerTest) {
         auto resultTokenType = dynamic_pointer_cast<TokenOperator>(result.construct(span))->getValue();
         EXPECT_TRUE(result);
         printf("Token result for string %s: %d and %s\n", str.c_str(), resultTokenType, result.getToken().c_str());
+    }
+}
+
+TEST(ScannerTest, IdentifierAndKeywordScannerTest) {
+    Span span{0, 0};
+    vector<string> keywords{
+            "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto",
+            "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"
+    };
+
+    vector<string> identifiers{
+            "aNd", "break_", "_do", "_e_l123se", "Elseif"
+    };
+
+    for (const string &str: keywords) {
+        stringstream stream{str};
+        IdentifierAndKeywordScanner scanner{stream};
+        auto result = scanner.next(span);
+        auto resultTokenType = dynamic_pointer_cast<TokenKeyword>(result.construct(span))->getKeyword();
+        EXPECT_TRUE(result);
+        printf("Token result for string (%s): [%d : %s]\n", str.c_str(), resultTokenType, result.getToken().c_str());
+    }
+
+    for (const string &str: identifiers) {
+        stringstream stream{str};
+        IdentifierAndKeywordScanner scanner{stream};
+        auto result = scanner.next(span);
+        auto resultToken = dynamic_pointer_cast<TokenIdentifier>(result.construct(span));
+        EXPECT_TRUE(result);
+        printf("Token result for string (%s): [%s]\n", str.c_str(), resultToken->getValue().c_str());
     }
 }

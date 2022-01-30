@@ -20,15 +20,25 @@ add_executable(
         src/intermediate_representation/tokens/Token.cpp
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
-        src/scanner/components/IScannerComponent.h src/fsa/LongBracketReader.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h src/scanner/components/OperatorScanner.cpp src/scanner/components/OperatorScanner.h)
+        src/scanner/components/IScannerComponent.h src/fsa/LongBracketReader.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h src/scanner/components/OperatorScanner.cpp src/scanner/components/OperatorScanner.h src/scanner/components/IdentifierAndKeywordScanner.cpp src/scanner/components/IdentifierAndKeywordScanner.h src/scanner/characters/IdentifierKeyword.h)
 
 add_executable(
         tests
         test/ScannerTest.cpp
         src/intermediate_representation/tokens/Token.cpp
+        src/intermediate_representation/tokens/Token.h
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
-        src/fsa/LongBracketReader.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h src/scanner/components/OperatorScanner.cpp src/scanner/components/OperatorScanner.h)
+        src/fsa/LongBracketReader.h
+        src/scanner/components/StringLiteralScanner.cpp
+        src/scanner/components/StringLiteralScanner.h
+        src/scanner/characters/StringLiteral.h
+        src/scanner/components/OperatorScanner.cpp
+        src/scanner/components/OperatorScanner.h
+        src/scanner/components/IdentifierAndKeywordScanner.cpp
+        src/scanner/components/IdentifierAndKeywordScanner.h
+        src/scanner/characters/IdentifierKeyword.h
+)
 
 # Setting Up Testing Framework
 target_link_libraries(tests gtest_main)

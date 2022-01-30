@@ -35,8 +35,7 @@ namespace aux::ir::tokens {
         COLON_COLON, SEMI_COLON, COLON, COMMA, DOT, DOT_DOT, DOT_DOT_DOT
     };
 
-    const std::unordered_map<std::string, Keyword> keywords;
-    const std::unordered_map<std::string, Operator> operators;
+    bool isKeyword(const std::string &str);
 
     struct Span {
         const uint32_t column;

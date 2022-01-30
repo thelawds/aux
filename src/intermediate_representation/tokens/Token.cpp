@@ -69,6 +69,10 @@ const std::unordered_map<std::string, Operator> operators {
         {"...", Operator::DOT_DOT_DOT}
 };
 
+bool aux::ir::tokens::isKeyword(const std::string &str){
+    return keywords.contains(str);
+}
+
 Span Token::getSpan() const {
     return this->_span;
 }
@@ -93,7 +97,6 @@ const Keyword &TokenKeyword::getKeyword() {
     return this->_keyword;
 }
 
-
 TokenStringLiteral::TokenStringLiteral(std::string value, const Span &span) : Token(span), _value(std::move(value)) {}
 
 TokenType TokenStringLiteral::getType() const {
@@ -109,7 +112,7 @@ TokenType TokenOperator::getType() const {
 }
 
 TokenOperator::TokenOperator(const std::string &value, const Span &span)
-        : Token(span), _value(::operators.at(value)) {}
+        : Token(span), _value(operators.at(value)) {}
 
 Operator TokenOperator::getValue() const {
     return _value;

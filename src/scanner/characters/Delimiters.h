@@ -31,9 +31,7 @@ namespace aux::scanner::characters {
             case DelimiterCharType::END_OF_FILE:
                 return c == std::char_traits<char>::eof();
             case DelimiterCharType::ANY:
-                return (c >>= DelimiterCharType::OPERATOR)
-                       || (c >>= DelimiterCharType::SPACE)
-                       || (c >>= DelimiterCharType::END_OF_FILE);
+                return operators.contains(c) || std::isspace(c) || c == std::char_traits<char>::eof();
             default:
                 return false;
         }
