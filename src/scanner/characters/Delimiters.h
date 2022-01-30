@@ -12,7 +12,6 @@ namespace aux::scanner::characters {
 
     enum class DelimiterCharType {
         OPERATOR,
-        DELIMITER,
         SPACE,
         END_OF_FILE,
         ANY
@@ -20,21 +19,19 @@ namespace aux::scanner::characters {
 
 
     inline bool operator>>=(const char &c, DelimiterCharType type) {
-        static std::unordered_set<char> operators{'+', '-', '*', '/', '%', '^', '#', '&', '~', '|', '<', '>', '='};
-        static std::unordered_set<char> delimiters{'(', ')', '{', '}', '[', ']', ':', ';', ',', '.'};
+        static std::unordered_set<char> operators{
+            '+', '-', '*', '/', '%', '^', '#', '&', '~', '|', '<', '>', '=', '(', ')', '{', '}', '[', ']', ':', ';', ',', '.'
+        };
 
         switch (type) {
             case DelimiterCharType::OPERATOR:
                 return operators.contains(c);
-            case DelimiterCharType::DELIMITER:
-                return delimiters.contains(c);
             case DelimiterCharType::SPACE:
                 return std::isspace(c);
             case DelimiterCharType::END_OF_FILE:
                 return c == std::char_traits<char>::eof();
             case DelimiterCharType::ANY:
                 return (c >>= DelimiterCharType::OPERATOR)
-                       || (c >>= DelimiterCharType::DELIMITER)
                        || (c >>= DelimiterCharType::SPACE)
                        || (c >>= DelimiterCharType::END_OF_FILE);
             default:

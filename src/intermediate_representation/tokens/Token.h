@@ -19,60 +19,24 @@ namespace aux::ir::tokens {
         NUMERIC,
         STRING_LITERAL,
         OPERATOR,
-        DELIMITER,
         COMMENT,
         UNDEFINED
     };
 
     enum class Keyword {
-        AND,
-        BREAK,
-        DO,
-        ELSE,
-        ELSEIF,
-        END,
-        FALSE,
-        FOR,
-        FUNCTION,
-        GOTO,
-        IF,
-        IN,
-        LOCAL,
-        NIL,
-        NOT,
-        OR,
-        REPEAT,
-        RETURN,
-        THEN,
-        TRUE,
-        UNTIL,
-        WHILE
+        AND, BREAK, DO, ELSE, ELSEIF, END, FALSE, FOR, FUNCTION, GOTO, IF,
+        IN, LOCAL, NIL, NOT, OR, REPEAT, RETURN, THEN, TRUE, UNTIL, WHILE
     };
 
-    inline const std::unordered_map<std::string, Keyword> keywords{
-            {"and",      Keyword::AND},
-            {"break",    Keyword::BREAK},
-            {"do",       Keyword::DO},
-            {"else",     Keyword::ELSE},
-            {"elseif",   Keyword::ELSEIF},
-            {"end",      Keyword::END},
-            {"false",    Keyword::FALSE},
-            {"for",      Keyword::FOR},
-            {"function", Keyword::FUNCTION},
-            {"goto",     Keyword::GOTO},
-            {"if",       Keyword::IF},
-            {"in",       Keyword::IN},
-            {"local",    Keyword::LOCAL},
-            {"nil",      Keyword::NIL},
-            {"not",      Keyword::NOT},
-            {"or",       Keyword::OR},
-            {"repeat",   Keyword::REPEAT},
-            {"return",   Keyword::RETURN},
-            {"then",     Keyword::THEN},
-            {"true",     Keyword::TRUE},
-            {"until",    Keyword::UNTIL},
-            {"while",    Keyword::WHILE}
+    enum class Operator {
+        PLUS, MINUS, ASTERISK, SLASH, PERCENT, CARET, SHARP, AMPERSAND, TILDA, VERTICAL_BAR,
+        LT_LT, GT_GT, SLASH_SLASH, EQUAL_EQUAL, TILDA_EQUAL, LT_EQUAL, GT_EQUAL, LESS_THAN, GREATER_THAN,
+        EQUAL, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, LEFT_BRACKET, RIGHT_BRACKET, LEFT_CURLY_BRACE, RIGHT_CURLY_BRACE,
+        COLON_COLON, SEMI_COLON, COLON, COMMA, DOT, DOT_DOT, DOT_DOT_DOT
     };
+
+    const std::unordered_map<std::string, Keyword> keywords;
+    const std::unordered_map<std::string, Operator> operators;
 
     struct Span {
         const uint32_t column;
@@ -99,15 +63,18 @@ namespace aux::ir::tokens {
     struct TokenUndefined : Token {
         explicit TokenUndefined(const Span &span);
 
-        virtual TokenType getType() const override;
+        [[nodiscard]]
+        TokenType getType() const override;
     };
 
     struct TokenIdentifier : Token {
         TokenIdentifier(std::string value, const Span &span);
 
-        [[nodiscard]] TokenType getType() const override;
+        [[nodiscard]]
+        TokenType getType() const override;
 
-        [[nodiscard]] const std::string &getValue() const;
+        [[nodiscard]]
+        const std::string &getValue() const;
 
     private:
         const std::string _value;
@@ -116,7 +83,8 @@ namespace aux::ir::tokens {
     struct TokenKeyword : Token {
         TokenKeyword(const std::string &value, const Span &span);
 
-        [[nodiscard]] TokenType getType() const override;
+        [[nodiscard]]
+        TokenType getType() const override;
 
         const Keyword &getKeyword();
 
@@ -124,7 +92,7 @@ namespace aux::ir::tokens {
         const Keyword _keyword;
     };
 
-    template<typename T, Function<const std::string&, T> converter>
+    template<typename T, Function<const std::string &, T> converter>
     struct TokenNumeric : Token {
         TokenNumeric(std::string value, const Span &span)
                 : Token(span), _string_value(value), _value(converter(value)) {}
@@ -148,46 +116,45 @@ namespace aux::ir::tokens {
         std::string _string_value;
     };
 
-    template<uint16_t base>
-    inline uint64_t toInteger(const std::string& string){
-        return std::stoll(string, nullptr, base);
-    }
-
-    inline long double toLongDouble(const std::string &string){
-        return std::stold(string);
-    }
-
-    using TokenDecimal = TokenNumeric<uint64_t, toInteger<10>>;
-    using TokenHex = TokenNumeric<uint64_t, toInteger<16>>;
-    using TokenDouble = TokenNumeric<long double, toLongDouble>;
-
-    // todo: finish all after that line:
-    // -----------------------------
 
     struct TokenStringLiteral : Token {
-        TokenStringLiteral(std::string value, const Span & span);
+        TokenStringLiteral(std::string value, const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;
 
         [[nodiscard]]
         std::string getValue() const;
+
     private:
         std::string _value;
     };
 
     struct TokenOperator : Token {
-        explicit TokenOperator(const Span &span);
+        explicit TokenOperator(const std::string &value, const Span &span);
 
-        [[nodiscard]] TokenType getType() const override;
+        [[nodiscard]]
+        TokenType getType() const override;
+
+        [[nodiscard]]
+        Operator getValue() const;
+
+    private:
+        Operator _value;
     };
 
-    struct TokenDelimiter : Token {
-        explicit TokenDelimiter(const Span &span);
+    template<uint16_t base>
+    inline uint64_t toInteger(const std::string &string) {
+        return std::stoll(string, nullptr, base);
+    }
 
-        [[nodiscard]] TokenType getType() const override;
-    };
+    inline long double toLongDouble(const std::string &string) {
+        return std::stold(string);
+    }
 
+    using TokenDecimal = TokenNumeric<uint64_t, toInteger<10>>;
+    using TokenHex = TokenNumeric<uint64_t, toInteger<16>>;
+    using TokenDouble = TokenNumeric<long double, toLongDouble>;
 }
 
 #endif //AUX_TOKEN_H

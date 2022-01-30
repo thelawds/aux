@@ -8,7 +8,7 @@
 #include <istream>
 #include <map>
 #include <memory>
-#include "PatternMatchingException.h"
+#include "../exception/PatternMatchingException.h"
 #include "../util/Defines.h"
 
 namespace aux::fsa {

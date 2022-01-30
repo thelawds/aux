@@ -8,7 +8,7 @@
 #include "IScannerComponent.h"
 #include <istream>
 #include "../../fsa/State.h"
-#include "../../fsa/PatternMatchingException.h"
+#include "../../exception/PatternMatchingException.h"
 
 namespace aux::scanner::components {
 
