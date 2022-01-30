@@ -43,10 +43,14 @@ const Keyword &TokenKeyword::getKeyword() {
 
 TokenKeyword::~TokenKeyword() = default;
 
-TokenStringLiteral::TokenStringLiteral(const Span &span) : Token(span) {}
+TokenStringLiteral::TokenStringLiteral(std::string value, const Span& span) : Token(span), _value(std::move(value)) {}
 
 TokenType TokenStringLiteral::getType() const {
-    return TokenType::STRING;
+    return TokenType::STRING_LITERAL;
+}
+
+std::string TokenStringLiteral::getValue() const {
+    return _value;
 }
 
 TokenOperator::TokenOperator(const Span &span) : Token(span) {}

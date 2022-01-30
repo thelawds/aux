@@ -63,6 +63,6 @@ namespace aux::scanner::characters {
 
 }
 
-#define numeric(_Name) satisfies<NumericCharType::_Name>
+#define numeric(_Name) aux::scanner::characters::satisfies<aux::scanner::characters::NumericCharType::_Name>
 
 #endif //AUX_NUMERIC_H

@@ -20,7 +20,7 @@ add_executable(
         src/intermediate_representation/tokens/Token.cpp
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
-        src/scanner/components/IScannerComponent.h)
+        src/scanner/components/IScannerComponent.h src/fsa/LongBracketReader.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h)
 
 add_executable(
         tests
@@ -28,7 +28,7 @@ add_executable(
         src/intermediate_representation/tokens/Token.cpp
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
-)
+        src/fsa/LongBracketReader.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h)
 
 # Setting Up Testing Framework
 target_link_libraries(tests gtest_main)

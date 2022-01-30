@@ -1,21 +1,20 @@
 //
-// Created by miserable on 28.01.2022.
+// Created by miserable on 30.01.2022.
 //
 
-#ifndef AUX_NUMERICCONSTANTSDFSASCANNER_H
-#define AUX_NUMERICCONSTANTSDFSASCANNER_H
+#ifndef AUX_STRINGLITERALSCANNER_H
+#define AUX_STRINGLITERALSCANNER_H
 
 #include "IScannerComponent.h"
 #include <istream>
 #include "../../fsa/State.h"
 #include "../../fsa/PatternMatchingException.h"
-#include <map>
-#include <string>
 
-namespace aux::scanner::components{
+namespace aux::scanner::components {
 
-    struct NumericConstantsDFSAScanner : IScannerComponent {
-        explicit NumericConstantsDFSAScanner(std::istream &stream);
+    struct StringLiteralScanner : IScannerComponent {
+
+        explicit StringLiteralScanner(std::istream &stream);
 
         [[nodiscard]]
         ScanTokenResult next(ir::tokens::Span span) const override;
@@ -27,9 +26,12 @@ namespace aux::scanner::components{
         std::istream &_stream;
         std::shared_ptr<fsa::State<std::string>> _startingState;
 
-    };
+        [[nodiscard]]
+        ScanTokenResult readWithLongBracket(ir::tokens::Span span) const;
 
+    };
 }
 
 
-#endif //AUX_NUMERICCONSTANTSDFSASCANNER_H
+
+#endif //AUX_STRINGLITERALSCANNER_H

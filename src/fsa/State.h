@@ -38,6 +38,20 @@ namespace aux::fsa {
             }
         }
 
+        inline bool addTransition(
+                Predicate<CharT> input,
+                std::shared_ptr<ConformingStateType> state,
+                Function<CharT, ResultType> mixin
+        ) {
+            addTransition(input, state);
+            if (_mixinTable.contains(input)) {
+                return false;
+            } else {
+                _mixinTable[input] = mixin;
+                return true;
+            }
+        }
+
         inline bool removeTransition(Predicate<CharT> input) {
             if (_transitionTable.contains(input)) {
                 _transitionTable.erase(input);
@@ -54,7 +68,13 @@ namespace aux::fsa {
             get(&curr);
             for (const auto&[matcher, nextState]: _transitionTable) {
                 if (matcher(curr)) {
-                    result += curr;
+
+                    if (_mixinTable.contains(matcher)) {
+                        result += _mixinTable[matcher](curr);
+                    } else {
+                        result += curr;
+                    }
+
                     result += nextState->start();
                     return result;
                 }
@@ -66,6 +86,7 @@ namespace aux::fsa {
 
     protected:
         std::map<Predicate<CharT>, std::shared_ptr<ConformingStateType>> _transitionTable;
+        std::map<Predicate<CharT>, Function<CharT, ResultType>> _mixinTable;
         std::basic_istream<CharT, Traits> &_stream;
 
         inline bool isEof() {
@@ -101,8 +122,13 @@ namespace aux::fsa {
 
     using BasicFsaState = State<std::string>;
     using BasicFsaFinalState = FinalState<std::string>;
+
+    inline std::string skipSymbol(char c){
+        return "";
+    }
 }
 
-#define DeclareIntermediateState(_STATE_NAME) auto (_STATE_NAME) = make_shared<BasicFsaState>(stream)
+#define DeclareIntermediateState(_STATE_NAME) auto (_STATE_NAME) = std::make_shared<aux::fsa::BasicFsaState>(_stream)
+#define SKIP_SYMBOL aux::fsa::skipSymbol
 
 #endif //AUX_STATE_H

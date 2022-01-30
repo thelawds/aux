@@ -49,6 +49,6 @@ namespace aux::scanner::characters {
 
 }
 
-#define delimiter(_Name) satisfies<DelimiterCharType::_Name>
+#define delimiter(_Name) aux::scanner::characters::satisfies<aux::scanner::characters::DelimiterCharType::_Name>
 
 #endif //AUX_DELIMITERS_H

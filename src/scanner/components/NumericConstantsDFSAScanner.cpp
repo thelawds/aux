@@ -5,8 +5,6 @@
 #include "NumericConstantsDFSAScanner.h"
 #include "../characters/Delimiters.h"
 #include "../characters/Numeric.h"
-#include <iostream>
-
 
 using namespace aux::scanner::characters;
 using namespace aux::scanner::components;

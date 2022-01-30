@@ -16,7 +16,7 @@ namespace aux::ir::tokens {
         IDENTIFIER,
         KEYWORD,
         NUMERIC,
-        STRING,
+        STRING_LITERAL,
         OPERATOR,
         DELIMITER,
         COMMENT
@@ -162,9 +162,15 @@ namespace aux::ir::tokens {
     // -----------------------------
 
     struct TokenStringLiteral : Token {
-        explicit TokenStringLiteral(const Span &span);
+        TokenStringLiteral(std::string value, const Span & span);
 
-        [[nodiscard]] TokenType getType() const override;
+        [[nodiscard]]
+        TokenType getType() const override;
+
+        [[nodiscard]]
+        std::string getValue() const;
+    private:
+        std::string _value;
     };
 
     struct TokenOperator : Token {

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "../src/scanner/components/NumericConstantsDFSAScanner.h"
+#include "../src/scanner/components/StringLiteralScanner.h"
 
 using namespace std;
 using namespace aux::scanner;
@@ -27,7 +28,7 @@ TEST(ScannerTest, NumericConstantsScannerPositiveTest) {
         str += delimiters[i];
     }
 
-    stringstream stream(str);
+    stringstream stream{str};
     NumericConstantsDFSAScanner scanner{stream};
     while (stream.peek() != -1) {
         auto result = scanner.next({0, 0});
@@ -46,9 +47,29 @@ TEST(ScannerTest, NumericConstantsScannerNegativeTest) {
     };
 
     for (const auto &str: inputs) {
-        stringstream stream(str);
+        stringstream stream{str};
         NumericConstantsDFSAScanner scanner{stream};
         auto result = scanner.next({0, 0});
         EXPECT_FALSE(result);
+    }
+}
+
+TEST(ScannerTest, StringLiteralScannerPositiveTest){
+    vector<string> stringLiterals{
+        "\' Single Quote String \'",
+        "\'Single Quote String \\\' \'",
+
+        "\"Double Quote String \"",
+        "\" Double Quote String \\\" \"",
+
+    };
+
+    for (const string &str: stringLiterals) {
+        stringstream stream{str};
+        StringLiteralScanner scanner{stream};
+        auto result = scanner.next({0, 0});
+        EXPECT_TRUE(result);
+        auto token = dynamic_pointer_cast<TokenStringLiteral>(result.getToken());
+        printf("Token result: (%s)\n", token->getValue().c_str());
     }
 }
