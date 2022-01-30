@@ -14,6 +14,37 @@ using namespace aux::ir::tokens;
 using namespace aux::scanner::components;
 using namespace aux::exception;
 
+char escape(char curr){
+    switch (curr) {
+        case 'a':
+            return '\a';
+        case 'b':
+            return '\b';
+        case 'f':
+            return '\f';
+        case 'n':
+            return '\n';
+        case 'r':
+            return '\r';
+        case 't':
+            return '\t';
+        case 'v':
+            return '\v';
+        case '\\': // todo??
+            return '\\';
+        default:
+            throw logic_error(
+                    "Escape sequence is not supported for " + string{curr}
+            );
+    }
+}
+
+string makeCorrectEscapeSequence(char curr){
+    return curr == '\'' || curr == '\"'
+           ? string{curr}
+           : string{escape(curr)};
+}
+
 StringLiteralScanner::StringLiteralScanner(std::istream &stream) : _stream(stream) {
     _startingState = make_shared<BasicFsaState>(stream);
     auto S_FINISH = make_shared<BasicFsaFinalState>(stream);
@@ -30,13 +61,13 @@ StringLiteralScanner::StringLiteralScanner(std::istream &stream) : _stream(strea
     S_DoubleQuote_Any->addTransition(stringLiteral(BACKSLASH), S_DoubleQuote_Escape, SKIP_SYMBOL);
     S_DoubleQuote_Any->addTransition(stringLiteral(NON_EOF), S_DoubleQuote_Any);
 
-    S_DoubleQuote_Escape->addTransition(stringLiteral(NON_EOF), S_DoubleQuote_Any);
+    S_DoubleQuote_Escape->addTransition(stringLiteral(NON_EOF), S_DoubleQuote_Any, makeCorrectEscapeSequence);
 
     S_SingleQuote_Any->addTransition(stringLiteral(SINGLE_QUOTE), S_FINISH, SKIP_SYMBOL);
     S_SingleQuote_Any->addTransition(stringLiteral(BACKSLASH), S_SingleQuote_Escape, SKIP_SYMBOL);
     S_SingleQuote_Any->addTransition(stringLiteral(NON_EOF), S_SingleQuote_Any);
 
-    S_SingleQuote_Escape->addTransition(stringLiteral(NON_EOF), S_SingleQuote_Any);
+    S_SingleQuote_Escape->addTransition(stringLiteral(NON_EOF), S_SingleQuote_Any, makeCorrectEscapeSequence);
 }
 
 ScanTokenResult StringLiteralScanner::next(Span span) const {
