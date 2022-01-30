@@ -124,7 +124,7 @@ namespace aux::fsa {
     using BasicFsaFinalState = FinalState<std::string>;
 
     inline std::string skipSymbol(char c){
-        return "";
+        return {};
     }
 }
 

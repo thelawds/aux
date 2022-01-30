@@ -12,26 +12,17 @@ Span Token::getSpan() const {
     return this->_span;
 }
 
-Token::~Token() = default;
-
-
 TokenType TokenIdentifier::getType() const {
     return TokenType::IDENTIFIER;
 }
 
-TokenIdentifier::TokenIdentifier(std::string value, const Span &span)
-        : Token(span),
-          _value(std::move(value)) {}
+TokenIdentifier::TokenIdentifier(std::string value, const Span &span) : Token(span), _value(std::move(value)) {}
 
 const std::string &TokenIdentifier::getValue() const {
     return this->_value;
 }
 
-TokenIdentifier::~TokenIdentifier() = default;
-
-TokenKeyword::TokenKeyword(const std::string &value, const Span &span)
-        : Token(span),
-          _keyword(keywords.at(value)) {}
+TokenKeyword::TokenKeyword(const std::string &value, const Span &span) : Token(span), _keyword(keywords.at(value)) {}
 
 TokenType TokenKeyword::getType() const {
     return TokenType::KEYWORD;
@@ -41,9 +32,8 @@ const Keyword &TokenKeyword::getKeyword() {
     return this->_keyword;
 }
 
-TokenKeyword::~TokenKeyword() = default;
 
-TokenStringLiteral::TokenStringLiteral(std::string value, const Span& span) : Token(span), _value(std::move(value)) {}
+TokenStringLiteral::TokenStringLiteral(std::string value, const Span &span) : Token(span), _value(std::move(value)) {}
 
 TokenType TokenStringLiteral::getType() const {
     return TokenType::STRING_LITERAL;
@@ -63,4 +53,10 @@ TokenDelimiter::TokenDelimiter(const Span &span) : Token(span) {}
 
 TokenType TokenDelimiter::getType() const {
     return TokenType::DELIMITER;
+}
+
+TokenUndefined::TokenUndefined(const Span &span) : Token(span) {}
+
+TokenType TokenUndefined::getType() const {
+    return TokenType::UNDEFINED;
 }

@@ -5,9 +5,17 @@
 #ifndef AUX_OPERATORSSCANNER_H
 #define AUX_OPERATORSSCANNER_H
 
+#include "IScannerComponent.h"
+
 namespace aux::scanner::components {
 
-    struct OperatorsScanner {
+    struct OperatorsScanner : IScannerComponent {
+
+        ScanTokenResult next(ir::tokens::Span span) const override;
+
+        bool canProcessNextToken() const override;
+
+    private:
 
     };
 

@@ -11,20 +11,35 @@ using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::exception;
 
-ScanTokenResult::ScanTokenResult(shared_ptr<exception::ScannerError> scannerError)
-        : _result(false), _scannerError(std::move(scannerError)), _token(nullptr) {}
+std::shared_ptr<Token> defaultConstructionFunction(const string &token, const Span &span) {
+    static shared_ptr<Token> result = make_shared<TokenUndefined>(Span{0, 0});
+    return result;
+}
 
-ScanTokenResult::ScanTokenResult(shared_ptr<ir::tokens::Token> token)
-        : _result(true), _scannerError(nullptr), _token(std::move(token)) {}
+ScanTokenResult::ScanTokenResult(runtime_error &runtimeError)
+        : _result(false),
+          _scannerError(make_shared<runtime_error>(runtimeError)),
+          _constructionFunction(defaultConstructionFunction) {}
+
+
+ScanTokenResult::ScanTokenResult(std::string token, ScanTokenResult::ConstructingFunction constructingFunction)
+        : _result(true),
+          _token(std::move(token)),
+          _constructionFunction(constructingFunction),
+          _scannerError(nullptr) {}
 
 ScanTokenResult::operator bool() const {
     return _result;
 }
 
-std::shared_ptr<aux::exception::ScannerError> ScanTokenResult::getScannerError() const {
+std::string ScanTokenResult::getToken() const {
+    return _token;
+}
+
+std::shared_ptr<std::runtime_error> ScanTokenResult::getScannerError() const {
     return _scannerError;
 }
 
-std::shared_ptr<aux::ir::tokens::Token> ScanTokenResult::getToken() const {
-    return _token;
+shared_ptr<Token> ScanTokenResult::construct(const Span &span) const {
+    return _constructionFunction(_token, span);
 }

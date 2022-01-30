@@ -69,7 +69,6 @@ TEST(ScannerTest, StringLiteralScannerPositiveTest){
         StringLiteralScanner scanner{stream};
         auto result = scanner.next({0, 0});
         EXPECT_TRUE(result);
-        auto token = dynamic_pointer_cast<TokenStringLiteral>(result.getToken());
-        printf("Token result for string (%s): (%s)\n", str.c_str(), token->getValue().c_str());
+        printf("Token result for string (%s): (%s)\n", str.c_str(), result.getToken().c_str());
     }
 }

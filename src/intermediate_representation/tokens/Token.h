@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <unordered_map>
+#include <memory>
 #include "../../util/Defines.h"
 
 namespace aux::ir::tokens {
@@ -19,7 +20,8 @@ namespace aux::ir::tokens {
         STRING_LITERAL,
         OPERATOR,
         DELIMITER,
-        COMMENT
+        COMMENT,
+        UNDEFINED
     };
 
     enum class Keyword {
@@ -88,11 +90,16 @@ namespace aux::ir::tokens {
         [[nodiscard]]
         virtual TokenType getType() const = 0;
 
-        virtual ~Token();
 
     private:
         const Span _span;
 
+    };
+
+    struct TokenUndefined : Token {
+        explicit TokenUndefined(const Span &span);
+
+        virtual TokenType getType() const override;
     };
 
     struct TokenIdentifier : Token {
@@ -101,8 +108,6 @@ namespace aux::ir::tokens {
         [[nodiscard]] TokenType getType() const override;
 
         [[nodiscard]] const std::string &getValue() const;
-
-        ~TokenIdentifier() override;
 
     private:
         const std::string _value;
@@ -114,8 +119,6 @@ namespace aux::ir::tokens {
         [[nodiscard]] TokenType getType() const override;
 
         const Keyword &getKeyword();
-
-        ~TokenKeyword() override;
 
     private:
         const Keyword _keyword;

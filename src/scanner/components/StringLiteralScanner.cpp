@@ -76,9 +76,9 @@ ScanTokenResult StringLiteralScanner::next(Span span) const {
     } else {
         try {
             std::string result = _startingState->start();
-            return {make_shared<TokenStringLiteral>(result, span)};
+            return {result, makeTokenSharedPtr<TokenStringLiteral>};
         } catch (std::runtime_error &e) {
-            return {make_shared<ScannerError>(span)};
+            return e;
         }
     }
 }

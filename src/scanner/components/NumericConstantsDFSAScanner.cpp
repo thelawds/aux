@@ -112,14 +112,14 @@ ScanTokenResult components::NumericConstantsDFSAScanner::next(Span span) const {
         }
 
         if (isDouble) {
-            return {make_shared<TokenDouble>(res, span)};
+            return {res, makeTokenSharedPtr<TokenDouble>};
         } else if (isHex) {
-            return {make_shared<TokenHex>(res, span)};
+            return {res, makeTokenSharedPtr<TokenHex>};
         } else {
-            return {make_shared<TokenDecimal>(res, span)};
+            return {res, makeTokenSharedPtr<TokenDecimal>};
         }
     } catch (std::runtime_error &err) {
-        return {make_shared<ScannerError>(span)};
+        return {err};
     }
 }
 
