@@ -66,6 +66,20 @@ namespace aux::ir::tokens {
         TokenType getType() const override;
     };
 
+    struct TokenComment : Token {
+
+        TokenComment(std::string value, const Span& span);
+
+        [[nodiscard]]
+        TokenType getType() const override;
+
+        [[nodiscard]]
+        const std::string &getValue() const;
+
+    private:
+        std::string _value;
+    };
+
     struct TokenIdentifier : Token {
         TokenIdentifier(std::string value, const Span &span);
 
@@ -101,7 +115,7 @@ namespace aux::ir::tokens {
             return TokenType::NUMERIC;
         };
 
-        inline T getValue() const {
+        inline const T &getValue() const {
             return _value;
         };
 
@@ -123,7 +137,7 @@ namespace aux::ir::tokens {
         TokenType getType() const override;
 
         [[nodiscard]]
-        std::string getValue() const;
+        const std::string &getValue() const;
 
     private:
         std::string _value;
@@ -136,7 +150,7 @@ namespace aux::ir::tokens {
         TokenType getType() const override;
 
         [[nodiscard]]
-        Operator getValue() const;
+        const Operator &getValue() const;
 
     private:
         Operator _value;

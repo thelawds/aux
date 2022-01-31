@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "../src/scanner/components/NumericConstantsDFSAScanner.h"
+#include "../src/scanner/components/CommentsScanner.h"
 #include "../src/scanner/components/IdentifierAndKeywordScanner.h"
 #include "../src/scanner/components/StringLiteralScanner.h"
 #include "../src/scanner/components/OperatorScanner.h"
@@ -12,6 +13,7 @@ using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::components;
 
+Span span{0, 0};
 
 TEST(ScannerTest, NumericConstantsScannerPositiveTest) {
     vector<char> delimiters = {
@@ -28,7 +30,6 @@ TEST(ScannerTest, NumericConstantsScannerPositiveTest) {
         stringstream stream(input);
         NumericConstantsDFSAScanner scanner{stream};
 
-        Span span{0, 0};
         auto result = scanner.next(span);
         EXPECT_TRUE(result);
         printf(
@@ -49,13 +50,12 @@ TEST(ScannerTest, NumericConstantsScannerNegativeTest) {
     for (const auto &str: inputs) {
         stringstream stream{str};
         NumericConstantsDFSAScanner scanner{stream};
-        auto result = scanner.next({0, 0});
+        auto result = scanner.next(span);
         EXPECT_FALSE(result);
     }
 }
 
 TEST(ScannerTest, StringLiteralScannerPositiveTest) {
-    Span span{0, 0};
     vector<string> stringLiterals{
             "\' Single Quote String \'",
             "\'Single Quote String \\\' \'",
@@ -79,7 +79,6 @@ TEST(ScannerTest, StringLiteralScannerPositiveTest) {
 }
 
 TEST(ScannerTest, OperatorScannerTest) {
-    Span span{0, 0};
     vector<string> stringLiterals{
             "+", "-", "*", "/", "%", "^", "#", "&", "~", "|", ";", ":",
             ",", ".", "<", ">", "=", "(", ")", "{", "}", "[", "]",
@@ -97,7 +96,6 @@ TEST(ScannerTest, OperatorScannerTest) {
 }
 
 TEST(ScannerTest, IdentifierAndKeywordScannerTest) {
-    Span span{0, 0};
     vector<string> keywords{
             "and", "break", "do", "else", "elseif", "end", "false", "for", "function", "goto",
             "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"
@@ -124,4 +122,17 @@ TEST(ScannerTest, IdentifierAndKeywordScannerTest) {
         EXPECT_TRUE(result);
         printf("Token result for string (%s): [%s]\n", str.c_str(), resultToken->getValue().c_str());
     }
+}
+
+TEST(ScannerTest, CommentScannerTest){
+    string testComment = "-- My first Comment \n"
+                         "a = 12";
+
+    stringstream stream(testComment);
+    CommentsScanner scanner(stream);
+
+    auto result = scanner.next(span);
+    EXPECT_TRUE(result);
+    auto resultToken = dynamic_pointer_cast<TokenComment>(result.construct(span));
+    EXPECT_EQ(resultToken->getValue(), " My first Comment ");
 }

@@ -103,7 +103,7 @@ TokenType TokenStringLiteral::getType() const {
     return TokenType::STRING_LITERAL;
 }
 
-std::string TokenStringLiteral::getValue() const {
+const std::string &TokenStringLiteral::getValue() const {
     return _value;
 }
 
@@ -114,7 +114,7 @@ TokenType TokenOperator::getType() const {
 TokenOperator::TokenOperator(const std::string &value, const Span &span)
         : Token(span), _value(operators.at(value)) {}
 
-Operator TokenOperator::getValue() const {
+const Operator &TokenOperator::getValue() const {
     return _value;
 }
 
@@ -123,3 +123,16 @@ TokenUndefined::TokenUndefined(const Span &span) : Token(span) {}
 TokenType TokenUndefined::getType() const {
     return TokenType::UNDEFINED;
 }
+
+
+TokenComment::TokenComment(std::string value, const Span &span)
+        : Token(span), _value(std::move(value)) {}
+
+TokenType TokenComment::getType() const {
+    return TokenType::COMMENT;
+}
+
+const std::string &TokenComment::getValue() const {
+    return _value;
+}
+
