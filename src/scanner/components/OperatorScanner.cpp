@@ -10,9 +10,9 @@ using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::components;
 
-#define EOF char_traits<char>::eof()
+#define EOF char_traits<CommonCharType>::eof()
 
-ScanTokenResult OperatorScanner::next(Span span) const {
+ScanTokenResult OperatorScanner::next() const {
     try {
         auto res = tryScanOperatorOrDelimiter();
         return {res, makeTokenSharedPtr<TokenOperator>};
@@ -21,11 +21,11 @@ ScanTokenResult OperatorScanner::next(Span span) const {
     }
 }
 
-string OperatorScanner::tryScanOperatorOrDelimiter() const {
-    char curr;
+CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
+    CommonCharType curr;
 
     if (_stream.peek() != EOF) {
-        _stream.get(curr);
+        curr = _stream.get();
 
         switch (curr) {
             case '+':
@@ -47,61 +47,63 @@ string OperatorScanner::tryScanOperatorOrDelimiter() const {
                 return {curr};
             case '/':
                 if (_stream.peek() == '/') {
-                    _stream.get(curr);
-                    return "//";
+                    curr = _stream.get();
+                    return toCommonStringType("//");
                 } else {
-                    return "/";
+                    return toCommonStringType("/");
                 }
             case '~':
                 if (_stream.peek() == '=') {
-                    _stream.get(curr);
-                    return "~=";
+                    curr = _stream.get();
+                    return toCommonStringType("~=");
                 } else {
-                    return "~";
+                    return toCommonStringType("~");
                 }
             case '<':
                 if (_stream.peek() == '<') {
-                    _stream.get(curr);
-                    return "<<";
+                    curr = _stream.get();
+                    return toCommonStringType("<<");
                 } else if (_stream.peek() == '=') {
-                    _stream.get(curr);
-                    return "<=";
+                    curr = _stream.get();
+                    return toCommonStringType("<=");
                 } else {
-                    return "<";
+                    return toCommonStringType("=");
                 }
             case '>':
                 if (_stream.peek() == '>') {
-                    _stream.get(curr);
-                    return ">>";
+                    curr = _stream.get();
+                    return toCommonStringType(">>");
                 } else if (_stream.peek() == '=') {
-                    _stream.get(curr);
-                    return ">=";
+                    curr = _stream.get();
+                    return toCommonStringType(">=");
                 } else {
-                    return ">";
+                    return toCommonStringType(">");
                 }
             case '=':
                 if (_stream.peek() == '=') {
-                    _stream.get(curr);
-                    return "==";
+                    curr = _stream.get();
+                    return toCommonStringType("==");
+                } else{
+                    return toCommonStringType("=");
                 }
             case ':':
                 if (_stream.peek() == ':') {
-                    _stream.get(curr);
-                    return "::";
+                    curr = _stream.get();
+                    return toCommonStringType("::");
                 } else {
-                    return ":";
+                    return toCommonStringType(":");
                 }
             case '.':
                 if (_stream.peek() == '.') {
-                    _stream.get(curr);
+                    curr = _stream.get();
                     if (_stream.peek() == '.') {
-                        _stream.get(curr);
-                        return "...";
+                        curr = _stream.get();
+                        return toCommonStringType("...");
                     } else {
-                        return "..";
+                        return toCommonStringType("..");
                     }
                 } else {
-                    return ".";
+                    return toCommonStringType(".");
                 }
             default:
                 _stream.unget();

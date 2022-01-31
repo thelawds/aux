@@ -14,7 +14,7 @@ using namespace aux::ir::tokens;
 using namespace aux::scanner::components;
 using namespace aux::exception;
 
-char escape(char curr){
+CommonCharType escape(CommonCharType curr){
     switch (curr) {
         case 'a':
             return '\a';
@@ -34,18 +34,18 @@ char escape(char curr){
             return '\\';
         default:
             throw logic_error(
-                    "Escape sequence is not supported for " + string{curr}
+                    "Escape sequence is not supported for " + std::string {static_cast<char>(curr)}
             );
     }
 }
 
-string makeCorrectEscapeSequence(char curr){
+CommonStringType makeCorrectEscapeSequence(CommonCharType curr){
     return curr == '\'' || curr == '\"'
-           ? string{curr}
-           : string{escape(curr)};
+           ? CommonStringType{curr}
+           : CommonStringType{escape(curr)};
 }
 
-StringLiteralScanner::StringLiteralScanner(std::istream &stream) : _stream(stream) {
+StringLiteralScanner::StringLiteralScanner(input_stream::IIndexedStream<CommonCharType> &stream) : _stream(stream) {
     _startingState = make_shared<BasicFsaState>(stream);
     auto S_FINISH = make_shared<BasicFsaFinalState>(stream);
 
@@ -70,12 +70,12 @@ StringLiteralScanner::StringLiteralScanner(std::istream &stream) : _stream(strea
     S_SingleQuote_Escape->addTransition(stringLiteral(NON_EOF), S_SingleQuote_Any, makeCorrectEscapeSequence);
 }
 
-ScanTokenResult StringLiteralScanner::next(Span span) const {
+ScanTokenResult StringLiteralScanner::next() const {
     if (_stream.peek() == '[') {
-        return readWithLongBracket(span);
+        return readWithLongBracket();
     } else {
         try {
-            std::string result = _startingState->start();
+            CommonStringType result = _startingState->start();
             return {result, makeTokenSharedPtr<TokenStringLiteral>};
         } catch (std::runtime_error &e) {
             return e;
@@ -84,15 +84,14 @@ ScanTokenResult StringLiteralScanner::next(Span span) const {
 }
 
 bool StringLiteralScanner::canProcessNextToken() const {
-    using istream_char_t = std::basic_istream<char>::int_type;
-    static unordered_set<istream_char_t> quotationChars{'\'', '\"'};
-    static unordered_set<istream_char_t> longBracketChars{'[', '='};
+    static unordered_set<CommonCharType> quotationChars{'\'', '\"'};
+    static unordered_set<CommonCharType> longBracketChars{'[', '='};
 
     if (quotationChars.contains(_stream.peek())) {
         return true;
     }
 
-    istream_char_t curr = _stream.get();
+    CommonCharType curr = _stream.get();
     if (curr == '[' && longBracketChars.contains(_stream.peek())) {
         _stream.unget();
         return true;
@@ -102,6 +101,6 @@ bool StringLiteralScanner::canProcessNextToken() const {
     return false;
 }
 
-ScanTokenResult StringLiteralScanner::readWithLongBracket(Span span) const {
+ScanTokenResult StringLiteralScanner::readWithLongBracket() const {
     throw std::logic_error("Not Implemented =(");
 }

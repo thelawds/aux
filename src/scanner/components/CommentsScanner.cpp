@@ -4,18 +4,19 @@
 
 #include "CommentsScanner.h"
 
-aux::scanner::components::CommentsScanner::CommentsScanner(std::istream &stream) : _stream(stream) {}
+aux::scanner::components::CommentsScanner::CommentsScanner(aux::scanner::input_stream::IIndexedStream<CommonCharType> &stream)
+        : _stream(stream) {}
 
-aux::scanner::ScanTokenResult aux::scanner::components::CommentsScanner::next(aux::ir::tokens::Span span) const {
-    char c1, c2;
-    _stream.get(c1).get(c2);
+aux::scanner::ScanTokenResult aux::scanner::components::CommentsScanner::next() const {
+    CommonCharType c1 = _stream.get();
+    CommonCharType c2 = _stream.get();
 
     if (c1 == '-' && c2 == '-') {
-        std::string result;
-        char curr;
+        CommonStringType result;
+        CommonCharType curr;
 
-        while (_stream.peek() != std::char_traits<char>::eof()) {
-            _stream.get(curr);
+        while (_stream.peek() != std::char_traits<CommonCharType>::eof()) {
+            curr = _stream.get();
 
             if (curr == '\n') {
                 break;
@@ -26,7 +27,6 @@ aux::scanner::ScanTokenResult aux::scanner::components::CommentsScanner::next(au
         }
 
         return {result, aux::scanner::makeTokenSharedPtr<ir::tokens::TokenComment>};
-
     } else {
         _stream.unget();
         std::runtime_error err{"Unable to scan comment. Comment Should start with --"};
@@ -37,8 +37,7 @@ aux::scanner::ScanTokenResult aux::scanner::components::CommentsScanner::next(au
 }
 
 bool aux::scanner::components::CommentsScanner::canProcessNextToken() const {
-    char curr;
-    _stream.get(curr);
+    CommonCharType curr = _stream.get();
 
     if (curr == '-' && _stream.peek() == '-') {
         _stream.unget();

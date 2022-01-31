@@ -9,24 +9,26 @@
 #include <istream>
 #include "../../fsa/State.h"
 #include "../../exception/PatternMatchingException.h"
+#include "../input_stream/IIndexedStream.h"
 #include <map>
 #include <string>
+#include "../../util/Defines.h"
 
 namespace aux::scanner::components {
 
     struct IdentifierAndKeywordScanner : IScannerComponent{
 
-        explicit IdentifierAndKeywordScanner(std::istream &stream);
+        explicit IdentifierAndKeywordScanner(input_stream::IIndexedStream<CommonCharType> &stream);
 
         [[nodiscard]]
-        ScanTokenResult next(ir::tokens::Span span) const override;
+        ScanTokenResult next() const override;
 
         [[nodiscard]]
         bool canProcessNextToken() const override;
 
     private:
-        std::istream &_stream;
-        std::shared_ptr<fsa::State<std::string>> _startingState;
+        input_stream::IIndexedStream<CommonCharType> &_stream;
+        std::shared_ptr<fsa::State<CommonStringType>> _startingState;
 
     };
 }

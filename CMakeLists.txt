@@ -20,16 +20,15 @@ add_executable(
         src/intermediate_representation/tokens/Token.cpp
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
-        src/scanner/components/IScannerComponent.h src/fsa/LongBracketReader.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h src/scanner/components/OperatorScanner.cpp src/scanner/components/OperatorScanner.h src/scanner/components/IdentifierAndKeywordScanner.cpp src/scanner/components/IdentifierAndKeywordScanner.h src/scanner/characters/IdentifierKeyword.h src/scanner/components/CommentsScanner.cpp src/scanner/components/CommentsScanner.h)
+        src/scanner/components/IScannerComponent.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h src/scanner/components/OperatorScanner.cpp src/scanner/components/OperatorScanner.h src/scanner/components/IdentifierAndKeywordScanner.cpp src/scanner/components/IdentifierAndKeywordScanner.h src/scanner/characters/IdentifierKeyword.h src/scanner/components/CommentsScanner.cpp src/scanner/components/CommentsScanner.h src/scanner/input_stream/PreprocessedFileInputStream.cpp src/scanner/input_stream/PreprocessedFileInputStream.h src/scanner/input_stream/IIndexedStream.h src/scanner/ModularScanner.cpp src/scanner/ModularScanner.h)
 
 add_executable(
         tests
-        test/ScannerTest.cpp
+        test/ScannerComponentsTest.cpp
         src/intermediate_representation/tokens/Token.cpp
         src/intermediate_representation/tokens/Token.h
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
-        src/fsa/LongBracketReader.h
         src/scanner/components/StringLiteralScanner.cpp
         src/scanner/components/StringLiteralScanner.h
         src/scanner/characters/StringLiteral.h
@@ -38,7 +37,7 @@ add_executable(
         src/scanner/components/IdentifierAndKeywordScanner.cpp
         src/scanner/components/IdentifierAndKeywordScanner.h
         src/scanner/characters/IdentifierKeyword.h
-        src/scanner/components/CommentsScanner.cpp src/scanner/components/CommentsScanner.h)
+        src/scanner/components/CommentsScanner.cpp src/scanner/components/CommentsScanner.h src/scanner/input_stream/PreprocessedFileInputStream.cpp src/scanner/input_stream/PreprocessedFileInputStream.h src/scanner/input_stream/IIndexedStream.h src/scanner/ModularScanner.cpp src/scanner/ModularScanner.h test/ModularScannerTest.cpp)
 
 # Setting Up Testing Framework
 target_link_libraries(tests gtest_main)

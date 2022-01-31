@@ -9,13 +9,14 @@
 #include <map>
 #include <memory>
 #include "../exception/PatternMatchingException.h"
+#include "../scanner/input_stream/IIndexedStream.h"
 #include "../util/Defines.h"
 
 namespace aux::fsa {
 
     template<
             typename ResultType, // ResultType += ResultType; ResultType += InputPredicate; ResultType()
-            typename CharT = char,
+            typename CharT = CommonCharType,
             typename Traits = std::char_traits<CharT>
     >
     struct State {
@@ -23,11 +24,11 @@ namespace aux::fsa {
         using ConformingStateType = State<ResultType, CharT, Traits>;
 
         State(
-                std::basic_istream<CharT, Traits> &stream,
+                scanner::input_stream::IIndexedStream<CharT, Traits> &stream,
                 std::map<Predicate<CharT>, std::shared_ptr<ConformingStateType>> &transitionTable
         ) : _stream(stream), _transitionTable(transitionTable) {}
 
-        explicit State(std::basic_istream<CharT, Traits> &stream) : _stream(stream), _transitionTable({}) {}
+        explicit State(scanner::input_stream::IIndexedStream<CharT, Traits> &stream) : _stream(stream), _transitionTable({}) {}
 
         inline bool addTransition(Predicate<CharT> input, std::shared_ptr<ConformingStateType> state) {
             if (_transitionTable.contains(input)) {
@@ -87,7 +88,7 @@ namespace aux::fsa {
     protected:
         std::map<Predicate<CharT>, std::shared_ptr<ConformingStateType>> _transitionTable;
         std::map<Predicate<CharT>, Function<CharT, ResultType>> _mixinTable;
-        std::basic_istream<CharT, Traits> &_stream;
+        scanner::input_stream::IIndexedStream<CharT, Traits> &_stream;
 
         inline bool isEof() {
             return _stream.peek() == Traits::eof();
@@ -97,7 +98,7 @@ namespace aux::fsa {
             if (isEof()) {
                 *curr = Traits::eof();
             } else {
-                _stream.get(*curr);
+                *curr = _stream.get();
             }
         }
 
@@ -109,22 +110,28 @@ namespace aux::fsa {
 
     template<
             typename ResultType, // ResultType += ResultType; ResultType += InputPredicate
-            typename CharT = char,
+            bool MakeUnget,
+            typename CharT = CommonCharType ,
             typename Traits = std::char_traits<CharT>
+
     >
     struct FinalState : State<ResultType, CharT, Traits> {
-        explicit FinalState(std::basic_istream<CharT, Traits> &stream) : State<ResultType, CharT, Traits>(stream) {}
+        explicit FinalState(scanner::input_stream::IIndexedStream<CharT, Traits> &stream)
+                : State<ResultType, CharT, Traits>(stream) {}
 
         ResultType start() override {
-            this->unGet();
+            if (MakeUnget) {
+                this->unGet();
+            }
             return ResultType{};
         }
     };
 
-    using BasicFsaState = State<std::string>;
-    using BasicFsaFinalState = FinalState<std::string>;
+    using BasicFsaState = State<CommonStringType>;
+    using BasicFsaFinalStateReturningLastCharacter = FinalState<CommonStringType, true>;
+    using BasicFsaFinalState = FinalState<CommonStringType, false>;
 
-    inline std::string skipSymbol(char c){
+    inline CommonStringType skipSymbol(CommonCharType c){
         return {};
     }
 }

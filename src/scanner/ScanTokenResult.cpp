@@ -11,9 +11,8 @@ using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::exception;
 
-std::shared_ptr<Token> defaultConstructionFunction(const string &token, const Span &span) {
-    static shared_ptr<Token> result = make_shared<TokenUndefined>(Span{0, 0});
-    return result;
+std::shared_ptr<Token> defaultConstructionFunction(const CommonStringType &token, const Span &span) {
+    return make_shared<TokenUndefined>(span);
 }
 
 ScanTokenResult::ScanTokenResult(runtime_error &runtimeError)
@@ -22,7 +21,7 @@ ScanTokenResult::ScanTokenResult(runtime_error &runtimeError)
           _constructionFunction(defaultConstructionFunction) {}
 
 
-ScanTokenResult::ScanTokenResult(std::string token, ScanTokenResult::ConstructingFunction constructingFunction)
+ScanTokenResult::ScanTokenResult(CommonStringType token, ScanTokenResult::ConstructingFunction constructingFunction)
         : _result(true),
           _token(std::move(token)),
           _constructionFunction(constructingFunction),
@@ -32,7 +31,7 @@ ScanTokenResult::operator bool() const {
     return _result;
 }
 
-std::string ScanTokenResult::getToken() const {
+CommonStringType ScanTokenResult::getToken() const {
     return _token;
 }
 

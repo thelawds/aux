@@ -14,9 +14,9 @@
 namespace aux::scanner{
 
     struct ScanTokenResult {
-        using ConstructingFunction = BiFunction<const std::string&, const ir::tokens::Span&, std::shared_ptr<ir::tokens::Token>>;
+        using ConstructingFunction = BiFunction<const CommonStringType&, const ir::tokens::Span&, std::shared_ptr<ir::tokens::Token>>;
 
-        ScanTokenResult(std::string token, ConstructingFunction constructingFunction);
+        ScanTokenResult(CommonStringType token, ConstructingFunction constructingFunction);
 
         IMPLICIT ScanTokenResult(std::runtime_error &runtimeError); // NOLINT(google-explicit-constructor)
 
@@ -26,21 +26,21 @@ namespace aux::scanner{
         std::shared_ptr<std::runtime_error> getScannerError() const;
 
         [[nodiscard]]
-        std::string getToken() const;
+        CommonStringType getToken() const;
 
         [[nodiscard]]
         std::shared_ptr<ir::tokens::Token> construct(const aux::ir::tokens::Span &span) const;
 
     private:
         const bool _result;
-        const std::string _token;
+        const CommonStringType _token;
         const std::shared_ptr<std::runtime_error> _scannerError;
         const ConstructingFunction _constructionFunction;
     };
 
 
     template<typename ResultType>
-    std::shared_ptr<aux::ir::tokens::Token> makeTokenSharedPtr(const std::string &s, const aux::ir::tokens::Span &span){
+    std::shared_ptr<aux::ir::tokens::Token> makeTokenSharedPtr(const CommonStringType &s, const aux::ir::tokens::Span &span){
         return make_shared<ResultType>(s, span);
     }
 

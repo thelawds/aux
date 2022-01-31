@@ -9,14 +9,15 @@
 using namespace std;
 using namespace aux::fsa;
 using namespace aux::scanner;
+using namespace aux::scanner::input_stream;
 using namespace aux::exception;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::characters;
 using namespace aux::scanner::components;
 
-components::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &stream) : _stream(stream) {
+components::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(IIndexedStream<CommonCharType> &stream) : _stream(stream) {
     _startingState = make_shared<BasicFsaState>(stream);
-    auto S_Finish = make_shared<BasicFsaFinalState>(stream);
+    auto S_Finish = make_shared<BasicFsaFinalStateReturningLastCharacter>(stream);
 
     // Declare Decimal Number States:
     DeclareIntermediateState(S_0);
@@ -90,9 +91,9 @@ components::NumericConstantsDFSAScanner::NumericConstantsDFSAScanner(istream &st
     S_Hex_Double_P_All->addTransition(delimiter(ANY), S_Finish, SKIP_SYMBOL);
 }
 
-ScanTokenResult components::NumericConstantsDFSAScanner::next(Span span) const {
+ScanTokenResult components::NumericConstantsDFSAScanner::next() const {
     try {
-        string res = _startingState->start();
+        CommonStringType res = _startingState->start();
 
         bool isHex = false;
         bool isDouble = false;
@@ -120,10 +121,10 @@ ScanTokenResult components::NumericConstantsDFSAScanner::next(Span span) const {
 }
 
 bool components::NumericConstantsDFSAScanner::canProcessNextToken() const {
-    char curr;
+    CommonCharType curr;
 
-    if (_stream.peek() != -1) {
-        _stream.get(curr);
+    if (_stream.peek() != char_traits<CommonCharType>::eof()) {
+        curr = _stream.get();
 
         if (isdigit(curr) || curr == '.' && isdigit(_stream.peek())) {
             _stream.unget();

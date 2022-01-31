@@ -14,9 +14,9 @@ using namespace aux::ir::tokens;
 using namespace aux::scanner::characters;
 using namespace aux::scanner::components;
 
-IdentifierAndKeywordScanner::IdentifierAndKeywordScanner(istream &stream) : _stream(stream) {
+IdentifierAndKeywordScanner::IdentifierAndKeywordScanner(input_stream::IIndexedStream<CommonCharType> &stream) : _stream(stream) {
     _startingState = make_shared<BasicFsaState>(stream);
-    auto S_Finish = make_shared<BasicFsaFinalState>(stream);
+    auto S_Finish = make_shared<BasicFsaFinalStateReturningLastCharacter>(stream);
 
     DeclareIntermediateState(S_IK);
 
@@ -26,7 +26,7 @@ IdentifierAndKeywordScanner::IdentifierAndKeywordScanner(istream &stream) : _str
     S_IK->addTransition(identifier(ANY), S_IK);
 }
 
-ScanTokenResult IdentifierAndKeywordScanner::next(Span span) const {
+ScanTokenResult IdentifierAndKeywordScanner::next() const {
     try {
         auto result = _startingState->start();
         if (aux::ir::tokens::isKeyword(result)) {
@@ -40,8 +40,8 @@ ScanTokenResult IdentifierAndKeywordScanner::next(Span span) const {
 }
 
 bool IdentifierAndKeywordScanner::canProcessNextToken() const {
-    auto nextChar = _stream.peek();
-    if (static_cast<char>(nextChar) >>= IdentifierKeywordCharType::ALPHABETIC_UNDERSCORE) {
+    CommonCharType nextChar = _stream.peek();
+    if (nextChar >>= IdentifierKeywordCharType::ALPHABETIC_UNDERSCORE) {
         return true;
     } else {
         return false;

@@ -12,7 +12,7 @@ namespace aux::scanner::components{
     struct IScannerComponent {
 
         [[nodiscard]]
-        virtual aux::scanner::ScanTokenResult next(ir::tokens::Span span) const = 0;
+        virtual aux::scanner::ScanTokenResult next() const = 0;
 
         [[nodiscard]]
         virtual bool canProcessNextToken() const = 0;

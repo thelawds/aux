@@ -8,68 +8,68 @@
 
 using namespace aux::ir::tokens;
 
-const std::unordered_map<std::string, Keyword> keywords  {
-        {"and",      Keyword::AND},
-        {"break",    Keyword::BREAK},
-        {"do",       Keyword::DO},
-        {"else",     Keyword::ELSE},
-        {"elseif",   Keyword::ELSEIF},
-        {"end",      Keyword::END},
-        {"false",    Keyword::FALSE},
-        {"for",      Keyword::FOR},
-        {"function", Keyword::FUNCTION},
-        {"goto",     Keyword::GOTO},
-        {"if",       Keyword::IF},
-        {"in",       Keyword::IN},
-        {"local",    Keyword::LOCAL},
-        {"nil",      Keyword::NIL},
-        {"not",      Keyword::NOT},
-        {"or",       Keyword::OR},
-        {"repeat",   Keyword::REPEAT},
-        {"return",   Keyword::RETURN},
-        {"then",     Keyword::THEN},
-        {"true",     Keyword::TRUE},
-        {"until",    Keyword::UNTIL},
-        {"while",    Keyword::WHILE}
+const std::unordered_map<CommonStringType, Keyword> keywords  {
+        {toCommonStringType("and"),      Keyword::AND},
+        {toCommonStringType("break"),    Keyword::BREAK},
+        {toCommonStringType("do"),       Keyword::DO},
+        {toCommonStringType("else"),     Keyword::ELSE},
+        {toCommonStringType("elseif"),   Keyword::ELSEIF},
+        {toCommonStringType("end"),      Keyword::END},
+        {toCommonStringType("false"),    Keyword::FALSE},
+        {toCommonStringType("for"),      Keyword::FOR},
+        {toCommonStringType("function"), Keyword::FUNCTION},
+        {toCommonStringType("goto"),     Keyword::GOTO},
+        {toCommonStringType("if"),       Keyword::IF},
+        {toCommonStringType("in"),       Keyword::IN},
+        {toCommonStringType("local"),    Keyword::LOCAL},
+        {toCommonStringType("nil"),      Keyword::NIL},
+        {toCommonStringType("not"),      Keyword::NOT},
+        {toCommonStringType("or"),       Keyword::OR},
+        {toCommonStringType("repeat"),   Keyword::REPEAT},
+        {toCommonStringType("return"),   Keyword::RETURN},
+        {toCommonStringType("then"),     Keyword::THEN},
+        {toCommonStringType("true"),     Keyword::TRUE},
+        {toCommonStringType("until"),    Keyword::UNTIL},
+        {toCommonStringType("while"),    Keyword::WHILE}
 };
 
-const std::unordered_map<std::string, Operator> operators {
-        {"+", Operator::PLUS},
-        {"-", Operator::MINUS},
-        {"*", Operator::ASTERISK},
-        {"/", Operator::SLASH},
-        {"%", Operator::PERCENT},
-        {"^", Operator::CARET},
-        {"#", Operator::SHARP},
-        {"&", Operator::AMPERSAND},
-        {"~", Operator::TILDA},
-        {"|", Operator::VERTICAL_BAR},
-        {"<<", Operator::LT_LT},
-        {">>", Operator::GT_GT},
-        {"//", Operator::SLASH_SLASH},
-        {"==", Operator::EQUAL_EQUAL},
-        {"~=", Operator::TILDA_EQUAL},
-        {"<=", Operator::LT_EQUAL},
-        {">=", Operator::GT_EQUAL},
-        {"<", Operator::LESS_THAN},
-        {">", Operator::GREATER_THAN},
-        {"=", Operator::EQUAL},
-        {"(", Operator::LEFT_PARENTHESIS},
-        {")", Operator::RIGHT_PARENTHESIS},
-        {"[", Operator::LEFT_BRACKET},
-        {"]", Operator::RIGHT_BRACKET},
-        {"{", Operator::LEFT_CURLY_BRACE},
-        {"}", Operator::RIGHT_CURLY_BRACE},
-        {"::", Operator::COLON_COLON},
-        {";", Operator::SEMI_COLON},
-        {":", Operator::COLON},
-        {",", Operator::COMMA},
-        {".", Operator::DOT},
-        {"..", Operator::DOT_DOT},
-        {"...", Operator::DOT_DOT_DOT}
+const std::unordered_map<CommonStringType, Operator> operators {
+        {toCommonStringType("+"), Operator::PLUS},
+        {toCommonStringType("-"), Operator::MINUS},
+        {toCommonStringType("*"), Operator::ASTERISK},
+        {toCommonStringType("/"), Operator::SLASH},
+        {toCommonStringType("%"), Operator::PERCENT},
+        {toCommonStringType("^"), Operator::CARET},
+        {toCommonStringType("#"), Operator::SHARP},
+        {toCommonStringType("&"), Operator::AMPERSAND},
+        {toCommonStringType("~"), Operator::TILDA},
+        {toCommonStringType("|"), Operator::VERTICAL_BAR},
+        {toCommonStringType("<<"), Operator::LT_LT},
+        {toCommonStringType(">>"), Operator::GT_GT},
+        {toCommonStringType("//"), Operator::SLASH_SLASH},
+        {toCommonStringType("=="), Operator::EQUAL_EQUAL},
+        {toCommonStringType("~="), Operator::TILDA_EQUAL},
+        {toCommonStringType("<="), Operator::LT_EQUAL},
+        {toCommonStringType(">="), Operator::GT_EQUAL},
+        {toCommonStringType("<"), Operator::LESS_THAN},
+        {toCommonStringType(">"), Operator::GREATER_THAN},
+        {toCommonStringType("="), Operator::EQUAL},
+        {toCommonStringType("("), Operator::LEFT_PARENTHESIS},
+        {toCommonStringType(")"), Operator::RIGHT_PARENTHESIS},
+        {toCommonStringType("["), Operator::LEFT_BRACKET},
+        {toCommonStringType("]"), Operator::RIGHT_BRACKET},
+        {toCommonStringType("{"), Operator::LEFT_CURLY_BRACE},
+        {toCommonStringType("}"), Operator::RIGHT_CURLY_BRACE},
+        {toCommonStringType("::"), Operator::COLON_COLON},
+        {toCommonStringType(";"), Operator::SEMI_COLON},
+        {toCommonStringType(":"), Operator::COLON},
+        {toCommonStringType(","), Operator::COMMA},
+        {toCommonStringType("."), Operator::DOT},
+        {toCommonStringType(".."), Operator::DOT_DOT},
+        {toCommonStringType("..."), Operator::DOT_DOT_DOT}
 };
 
-bool aux::ir::tokens::isKeyword(const std::string &str){
+bool aux::ir::tokens::isKeyword(const CommonStringType &str){
     return keywords.contains(str);
 }
 
@@ -81,13 +81,13 @@ TokenType TokenIdentifier::getType() const {
     return TokenType::IDENTIFIER;
 }
 
-TokenIdentifier::TokenIdentifier(std::string value, const Span &span) : Token(span), _value(std::move(value)) {}
+TokenIdentifier::TokenIdentifier(CommonStringType value, const Span &span) : Token(span), _value(std::move(value)) {}
 
-const std::string &TokenIdentifier::getValue() const {
+const CommonStringType &TokenIdentifier::getValue() const {
     return this->_value;
 }
 
-TokenKeyword::TokenKeyword(const std::string &value, const Span &span) : Token(span), _keyword(keywords.at(value)) {}
+TokenKeyword::TokenKeyword(const CommonStringType &value, const Span &span) : Token(span), _keyword(keywords.at(value)) {}
 
 TokenType TokenKeyword::getType() const {
     return TokenType::KEYWORD;
@@ -97,13 +97,13 @@ const Keyword &TokenKeyword::getKeyword() {
     return this->_keyword;
 }
 
-TokenStringLiteral::TokenStringLiteral(std::string value, const Span &span) : Token(span), _value(std::move(value)) {}
+TokenStringLiteral::TokenStringLiteral(CommonStringType value, const Span &span) : Token(span), _value(std::move(value)) {}
 
 TokenType TokenStringLiteral::getType() const {
     return TokenType::STRING_LITERAL;
 }
 
-const std::string &TokenStringLiteral::getValue() const {
+const CommonStringType &TokenStringLiteral::getValue() const {
     return _value;
 }
 
@@ -111,10 +111,10 @@ TokenType TokenOperator::getType() const {
     return TokenType::OPERATOR;
 }
 
-TokenOperator::TokenOperator(const std::string &value, const Span &span)
+TokenOperator::TokenOperator(const CommonStringType &value, const Span &span)
         : Token(span), _value(operators.at(value)) {}
 
-const Operator &TokenOperator::getValue() const {
+const Operator &TokenOperator::getOperator() const {
     return _value;
 }
 
@@ -125,14 +125,14 @@ TokenType TokenUndefined::getType() const {
 }
 
 
-TokenComment::TokenComment(std::string value, const Span &span)
+TokenComment::TokenComment(CommonStringType value, const Span &span)
         : Token(span), _value(std::move(value)) {}
 
 TokenType TokenComment::getType() const {
     return TokenType::COMMENT;
 }
 
-const std::string &TokenComment::getValue() const {
+const CommonStringType &TokenComment::getValue() const {
     return _value;
 }
 
