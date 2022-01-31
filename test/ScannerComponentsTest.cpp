@@ -164,5 +164,5 @@ TEST(ScannerComponentsTest, CommentScannerTest){
     auto result = scanner.next();
     EXPECT_TRUE(result);
     auto resultToken = dynamic_pointer_cast<TokenComment>(result.construct(span));
-    EXPECT_EQ(resultToken->getValue(), toCommonStringType(""));
+    EXPECT_EQ(resultToken->getValue(), toCommonStringType(" My first Comment "));
 }
