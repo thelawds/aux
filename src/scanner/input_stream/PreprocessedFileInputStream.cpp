@@ -2,7 +2,6 @@
 // Created by miserable on 31.01.2022.
 //
 
-#include <iostream>
 #include "PreprocessedFileInputStream.h"
 
 aux::scanner::input_stream::PreprocessedFileInputStream::PreprocessedFileInputStream(const std::string& inputFile)

@@ -10,12 +10,15 @@
 namespace aux::fsa {
 
     struct PatternMatchingException : std::runtime_error {
-        explicit PatternMatchingException(const std::string &arg) : runtime_error(arg) {}
-        explicit PatternMatchingException(const char *string) : runtime_error(string) {}
+        PatternMatchingException(const std::string &exception, char errorAt)
+                : std::runtime_error(exception + " at " + std::string(1, errorAt)) {}
+
+        PatternMatchingException(const char *exception, char errorAt)
+                : std::runtime_error(std::string(exception) + " at " + std::string(1, errorAt)) {}
+
     };
 
 }
-
 
 
 #endif //AUX_PATTERNMATCHINGEXCEPTION_H

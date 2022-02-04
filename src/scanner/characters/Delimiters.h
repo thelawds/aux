@@ -17,7 +17,6 @@ namespace aux::scanner::characters {
         ANY
     };
 
-
     inline bool operator>>=(const CommonCharType &c, DelimiterCharType type) {
         static std::unordered_set<CommonCharType> operators{
             '+', '-', '*', '/', '%', '^', '#', '&', '~', '|', '<', '>', '=', '(', ')', '{', '}', '[', ']', ':', ';', ',', '.'

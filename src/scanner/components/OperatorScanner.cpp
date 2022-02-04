@@ -22,7 +22,7 @@ ScanTokenResult OperatorScanner::next() const {
 }
 
 CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
-    CommonCharType curr;
+    CommonCharType curr = 0;
 
     if (_stream.peek() != EOF) {
         curr = _stream.get();
@@ -47,57 +47,57 @@ CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
                 return {curr};
             case '/':
                 if (_stream.peek() == '/') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType("//");
                 } else {
                     return toCommonStringType("/");
                 }
             case '~':
                 if (_stream.peek() == '=') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType("~=");
                 } else {
                     return toCommonStringType("~");
                 }
             case '<':
                 if (_stream.peek() == '<') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType("<<");
                 } else if (_stream.peek() == '=') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType("<=");
                 } else {
                     return toCommonStringType("=");
                 }
             case '>':
                 if (_stream.peek() == '>') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType(">>");
                 } else if (_stream.peek() == '=') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType(">=");
                 } else {
                     return toCommonStringType(">");
                 }
             case '=':
                 if (_stream.peek() == '=') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType("==");
-                } else{
+                } else {
                     return toCommonStringType("=");
                 }
             case ':':
                 if (_stream.peek() == ':') {
-                    curr = _stream.get();
+                    _stream.get();
                     return toCommonStringType("::");
                 } else {
                     return toCommonStringType(":");
                 }
             case '.':
                 if (_stream.peek() == '.') {
-                    curr = _stream.get();
+                    _stream.get();
                     if (_stream.peek() == '.') {
-                        curr = _stream.get();
+                        _stream.get();
                         return toCommonStringType("...");
                     } else {
                         return toCommonStringType("..");
@@ -107,12 +107,11 @@ CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
                 }
             default:
                 _stream.unget();
-                break;
+                throw fsa::PatternMatchingException("Pattern matching failed for operator scanning", curr);
         }
 
     }
 
-    throw fsa::PatternMatchingException("Error"); // todo
 
 }
 

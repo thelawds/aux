@@ -7,7 +7,6 @@
 
 #include <string>
 #include <memory>
-#include "../exception/ScannerError.h"
 #include "../intermediate_representation/tokens/Token.h"
 #include "../util/Defines.h"
 

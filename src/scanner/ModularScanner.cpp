@@ -9,6 +9,7 @@
 #include "components/StringLiteralScanner.h"
 #include "components/IdentifierAndKeywordScanner.h"
 #include "components/NumericConstantsDFSAScanner.h"
+#include "../constants/LexicalAnalysisErrorMessages.h"
 
 using namespace aux::scanner;
 using namespace aux::ir::tokens;
@@ -23,10 +24,8 @@ std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
         return nullptr;
     }
 
-    Span span{
-        static_cast<uint16_t>(1 + _stream.getRow()),
-        static_cast<uint16_t>(1 + _stream.getColumn())
-    };
+    auto startingChar = _stream.peek();
+    Span span{uint16_t(1 + _stream.getRow()), uint16_t(1 + _stream.getColumn())};
     std::vector<std::shared_ptr<std::runtime_error>> errors;
     for (const auto &component: _components) {
         if (component->canProcessNextToken()) {
@@ -39,9 +38,11 @@ std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
         }
     }
 
-    // todo: log errors
+    for (const auto& err: errors) {
+        LOG(ERROR) << MODULAR_SCANNER_ERROR(span.row, span.column, err->what());
+    }
 
-    throw std::runtime_error("was not able to scan input file");
+    LOG(FATAL) << MODULAR_SCANNER_GENERAL_ERROR(startingChar, span.row, span.column);
 }
 
 ModularScanner::ModularScanner(IIndexedStream<CommonCharType> &stream) : _stream(stream) {

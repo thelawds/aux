@@ -82,7 +82,7 @@ namespace aux::fsa {
             }
 
             unGet();
-            throw PatternMatchingException("Pattern matching failed on: " + std::to_string(curr));
+            throw PatternMatchingException("Pattern matching failed", curr);
         }
 
     protected:

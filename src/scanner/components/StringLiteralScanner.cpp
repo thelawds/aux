@@ -12,7 +12,6 @@ using namespace aux::fsa;
 using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::components;
-using namespace aux::exception;
 
 CommonCharType escape(CommonCharType curr){
     switch (curr) {
@@ -30,8 +29,8 @@ CommonCharType escape(CommonCharType curr){
             return '\t';
         case 'v':
             return '\v';
-        case '\\': // todo??
-            return '\\';
+        case '\\':
+            return curr;
         default:
             throw logic_error(
                     "Escape sequence is not supported for " + std::string {static_cast<char>(curr)}

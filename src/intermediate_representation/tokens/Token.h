@@ -26,39 +26,54 @@ namespace aux::ir::tokens {
         UNDEFINED
     };
 
+    inline std::string &operator*(const TokenType &type) {
+        static std::unordered_map<TokenType, std::string> keywords {
+                {TokenType::IDENTIFIER, "Identifier"},
+                {TokenType::KEYWORD, "Keyword"},
+                {TokenType::NUMERIC_DECIMAL, "Numerical Decimal"},
+                {TokenType::NUMERIC_HEX, "Numerical Hex"},
+                {TokenType::NUMERIC_DOUBLE, "Numerical Double"},
+                {TokenType::STRING_LITERAL, "String Literal"},
+                {TokenType::OPERATOR, "Operator"},
+                {TokenType::COMMENT, "Comment"},
+                {TokenType::UNDEFINED, "Undefined"}
+        };
+
+        return keywords.at(type);
+    }
+
     enum class Keyword {
         AND, BREAK, DO, ELSE, ELSEIF, END, FALSE, FOR, FUNCTION, GOTO, IF,
         IN, LOCAL, NIL, NOT, OR, REPEAT, RETURN, THEN, TRUE, UNTIL, WHILE
     };
 
-    inline std::basic_ostream<CommonCharType> &operator<<(std::basic_ostream<CommonCharType> &os, const Keyword &keyword) {
-        static std::unordered_map<Keyword, CommonStringType> keywords {
-                {Keyword::AND, toCommonStringType("and")},
-                {Keyword::BREAK, toCommonStringType("break")},
-                {Keyword::DO, toCommonStringType("do")},
-                {Keyword::ELSE, toCommonStringType("else")},
-                {Keyword::ELSEIF, toCommonStringType("elseif")},
-                {Keyword::END, toCommonStringType("end")},
-                {Keyword::FALSE, toCommonStringType("false")},
-                {Keyword::FOR, toCommonStringType("for")},
-                {Keyword::FUNCTION, toCommonStringType("function")},
-                {Keyword::GOTO, toCommonStringType("goto")},
-                {Keyword::IF, toCommonStringType("if")},
-                {Keyword::IN, toCommonStringType("in")},
-                {Keyword::LOCAL, toCommonStringType("local")},
-                {Keyword::NIL, toCommonStringType("nil")},
-                {Keyword::NOT, toCommonStringType("not")},
-                {Keyword::OR, toCommonStringType("or")},
-                {Keyword::REPEAT, toCommonStringType("repeat")},
-                {Keyword::RETURN, toCommonStringType("return")},
-                {Keyword::THEN, toCommonStringType("then")},
-                {Keyword::TRUE, toCommonStringType("true")},
-                {Keyword::UNTIL, toCommonStringType("until")},
-                {Keyword::WHILE, toCommonStringType("while")}
+    inline std::string &operator*(const Keyword &keyword) {
+        static std::unordered_map<Keyword, std::string> keywords {
+                {Keyword::AND, ("and")},
+                {Keyword::BREAK, ("break")},
+                {Keyword::DO, ("do")},
+                {Keyword::ELSE, ("else")},
+                {Keyword::ELSEIF, ("elseif")},
+                {Keyword::END, ("end")},
+                {Keyword::FALSE, ("false")},
+                {Keyword::FOR, ("for")},
+                {Keyword::FUNCTION, ("function")},
+                {Keyword::GOTO, ("goto")},
+                {Keyword::IF, ("if")},
+                {Keyword::IN, ("in")},
+                {Keyword::LOCAL, ("local")},
+                {Keyword::NIL, ("nil")},
+                {Keyword::NOT, ("not")},
+                {Keyword::OR, ("or")},
+                {Keyword::REPEAT, ("repeat")},
+                {Keyword::RETURN, ("return")},
+                {Keyword::THEN, ("then")},
+                {Keyword::TRUE, ("true")},
+                {Keyword::UNTIL, ("until")},
+                {Keyword::WHILE, ("while")}
         };
 
-        os << keywords.at(keyword);
-        return os;
+        return keywords.at(keyword);
     }
 
     enum class Operator {
@@ -68,45 +83,44 @@ namespace aux::ir::tokens {
         COLON_COLON, SEMI_COLON, COLON, COMMA, DOT, DOT_DOT, DOT_DOT_DOT
     };
 
-    inline std::basic_ostream<CommonCharType> &operator<<(std::basic_ostream<CommonCharType> &os, const Operator &op) {
-        static std::unordered_map<Operator, CommonStringType> operators {
-                {Operator::PLUS, toCommonStringType("+")},
-                {Operator::MINUS, toCommonStringType("-")},
-                {Operator::ASTERISK, toCommonStringType("*")},
-                {Operator::SLASH, toCommonStringType("/")},
-                {Operator::PERCENT, toCommonStringType("%")},
-                {Operator::CARET, toCommonStringType("^")},
-                {Operator::SHARP, toCommonStringType("#")},
-                {Operator::AMPERSAND, toCommonStringType("&")},
-                {Operator::TILDA, toCommonStringType("~")},
-                {Operator::VERTICAL_BAR, toCommonStringType("|")},
-                {Operator::LT_LT, toCommonStringType("<<")},
-                {Operator::GT_GT, toCommonStringType(">>")},
-                {Operator::SLASH_SLASH, toCommonStringType("//")},
-                {Operator::EQUAL_EQUAL, toCommonStringType("==")},
-                {Operator::TILDA_EQUAL, toCommonStringType("~=")},
-                {Operator::LT_EQUAL, toCommonStringType("<=")},
-                {Operator::GT_EQUAL, toCommonStringType(">=")},
-                {Operator::LESS_THAN, toCommonStringType("<")},
-                {Operator::GREATER_THAN, toCommonStringType(">")},
-                {Operator::EQUAL, toCommonStringType("=")},
-                {Operator::LEFT_PARENTHESIS, toCommonStringType("(")},
-                {Operator::RIGHT_PARENTHESIS, toCommonStringType(")")},
-                {Operator::LEFT_BRACKET, toCommonStringType("[")},
-                {Operator::RIGHT_BRACKET, toCommonStringType("]")},
-                {Operator::LEFT_CURLY_BRACE, toCommonStringType("{")},
-                {Operator::RIGHT_CURLY_BRACE, toCommonStringType("}")},
-                {Operator::COLON_COLON, toCommonStringType("::")},
-                {Operator::SEMI_COLON, toCommonStringType(";")},
-                {Operator::COLON, toCommonStringType(":")},
-                {Operator::COMMA, toCommonStringType(",")},
-                {Operator::DOT, toCommonStringType(".")},
-                {Operator::DOT_DOT, toCommonStringType("..")},
-                {Operator::DOT_DOT_DOT, toCommonStringType("...")}
+    inline std::string &operator*(const Operator &op) {
+        static std::unordered_map<Operator, std::string> operators {
+                {Operator::PLUS, ("+")},
+                {Operator::MINUS, ("-")},
+                {Operator::ASTERISK, ("*")},
+                {Operator::SLASH, ("/")},
+                {Operator::PERCENT, ("%")},
+                {Operator::CARET, ("^")},
+                {Operator::SHARP, ("#")},
+                {Operator::AMPERSAND, ("&")},
+                {Operator::TILDA, ("~")},
+                {Operator::VERTICAL_BAR, ("|")},
+                {Operator::LT_LT, ("<<")},
+                {Operator::GT_GT, (">>")},
+                {Operator::SLASH_SLASH, ("//")},
+                {Operator::EQUAL_EQUAL, ("==")},
+                {Operator::TILDA_EQUAL, ("~=")},
+                {Operator::LT_EQUAL, ("<=")},
+                {Operator::GT_EQUAL, (">=")},
+                {Operator::LESS_THAN, ("<")},
+                {Operator::GREATER_THAN, (">")},
+                {Operator::EQUAL, ("=")},
+                {Operator::LEFT_PARENTHESIS, ("(")},
+                {Operator::RIGHT_PARENTHESIS, (")")},
+                {Operator::LEFT_BRACKET, ("[")},
+                {Operator::RIGHT_BRACKET, ("]")},
+                {Operator::LEFT_CURLY_BRACE, ("{")},
+                {Operator::RIGHT_CURLY_BRACE, ("}")},
+                {Operator::COLON_COLON, ("::")},
+                {Operator::SEMI_COLON, (";")},
+                {Operator::COLON, (":")},
+                {Operator::COMMA, (",")},
+                {Operator::DOT, (".")},
+                {Operator::DOT_DOT, ("..")},
+                {Operator::DOT_DOT_DOT, ("...")}
         };
 
-        os << operators.at(op);
-        return os;
+        return operators.at(op);
     }
 
     bool isKeyword(const CommonStringType &str);
@@ -180,14 +194,14 @@ namespace aux::ir::tokens {
         const Keyword _keyword;
     };
 
-    template<typename T, Function<const CommonStringType &, T> converter, TokenType _TokType>
+    template<typename T, Function<const CommonStringType &, T> converter, TokenType TokType>
     struct TokenNumeric : Token {
         TokenNumeric(CommonStringType value, const Span &span)
                 : Token(span), _string_value(value), _value(converter(value)) {}
 
         [[nodiscard]]
         inline TokenType getType() const override {
-            return _TokType;
+            return TokType;
         };
 
         inline const T &getValue() const {

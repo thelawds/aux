@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
-project(aux)
+project(aux VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED 20)
+
+find_package(glog 0.6.0 REQUIRED)
+find_package(gflags REQUIRED)
 
 # Include tests framework:
 include(FetchContent)
@@ -20,26 +24,34 @@ add_executable(
         src/intermediate_representation/tokens/Token.cpp
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
-        src/scanner/components/IScannerComponent.h src/scanner/components/StringLiteralScanner.cpp src/scanner/components/StringLiteralScanner.h src/scanner/characters/StringLiteral.h src/scanner/components/OperatorScanner.cpp src/scanner/components/OperatorScanner.h src/scanner/components/IdentifierAndKeywordScanner.cpp src/scanner/components/IdentifierAndKeywordScanner.h src/scanner/characters/IdentifierKeyword.h src/scanner/components/CommentsScanner.cpp src/scanner/components/CommentsScanner.h src/scanner/input_stream/PreprocessedFileInputStream.cpp src/scanner/input_stream/PreprocessedFileInputStream.h src/scanner/input_stream/IIndexedStream.h src/scanner/ModularScanner.cpp src/scanner/ModularScanner.h)
+        src/scanner/components/StringLiteralScanner.cpp
+        src/scanner/components/OperatorScanner.cpp
+        src/scanner/components/IdentifierAndKeywordScanner.cpp
+        src/scanner/components/CommentsScanner.cpp
+        src/scanner/input_stream/PreprocessedFileInputStream.cpp
+        src/scanner/ModularScanner.cpp
+)
 
 add_executable(
         tests
         test/ScannerComponentsTest.cpp
         src/intermediate_representation/tokens/Token.cpp
-        src/intermediate_representation/tokens/Token.h
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
         src/scanner/components/StringLiteralScanner.cpp
-        src/scanner/components/StringLiteralScanner.h
-        src/scanner/characters/StringLiteral.h
         src/scanner/components/OperatorScanner.cpp
-        src/scanner/components/OperatorScanner.h
         src/scanner/components/IdentifierAndKeywordScanner.cpp
-        src/scanner/components/IdentifierAndKeywordScanner.h
-        src/scanner/characters/IdentifierKeyword.h
-        src/scanner/components/CommentsScanner.cpp src/scanner/components/CommentsScanner.h src/scanner/input_stream/PreprocessedFileInputStream.cpp src/scanner/input_stream/PreprocessedFileInputStream.h src/scanner/input_stream/IIndexedStream.h src/scanner/ModularScanner.cpp src/scanner/ModularScanner.h test/ModularScannerTest.cpp)
+        src/scanner/components/CommentsScanner.cpp
+        src/scanner/input_stream/PreprocessedFileInputStream.cpp
+        src/scanner/ModularScanner.cpp
+        test/ModularScannerTest.cpp
+)
 
-# Setting Up Testing Framework
-target_link_libraries(tests gtest_main)
+# Setting Up Frameworks
+# Testing
+target_link_libraries(tests gtest_main glog::glog)
 include(GoogleTest)
 gtest_discover_tests(tests)
+
+# Application
+target_link_libraries(aux glog::glog gflags)

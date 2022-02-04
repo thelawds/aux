@@ -9,7 +9,6 @@
 using namespace std;
 using namespace aux::scanner;
 using namespace aux::ir::tokens;
-using namespace aux::exception;
 
 std::shared_ptr<Token> defaultConstructionFunction(const CommonStringType &token, const Span &span) {
     return make_shared<TokenUndefined>(span);

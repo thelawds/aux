@@ -9,7 +9,6 @@
 using namespace std;
 using namespace aux::fsa;
 using namespace aux::scanner;
-using namespace aux::exception;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::characters;
 using namespace aux::scanner::components;

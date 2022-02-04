@@ -8,12 +8,10 @@ aux::scanner::components::CommentsScanner::CommentsScanner(aux::scanner::input_s
         : _stream(stream) {}
 
 aux::scanner::ScanTokenResult aux::scanner::components::CommentsScanner::next() const {
-    CommonCharType c1 = _stream.get();
-    CommonCharType c2 = _stream.get();
+    CommonCharType curr = _stream.get();
 
-    if (c1 == '-' && c2 == '-') {
+    if (curr == '-') {
         CommonStringType result;
-        CommonCharType curr;
 
         while (_stream.peek() != std::char_traits<CommonCharType>::eof()) {
             curr = _stream.get();
@@ -33,14 +31,13 @@ aux::scanner::ScanTokenResult aux::scanner::components::CommentsScanner::next() 
         return err;
     }
 
-
 }
 
 bool aux::scanner::components::CommentsScanner::canProcessNextToken() const {
-    CommonCharType curr = _stream.get();
+    CommonCharType c1 = _stream.get();
+    CommonCharType c2 = _stream.peek();
 
-    if (curr == '-' && _stream.peek() == '-') {
-        _stream.unget();
+    if (c1 == '-' && c2 == '-') {
         return true;
     }
 

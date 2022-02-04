@@ -8,7 +8,8 @@
 #define IMPLICIT // specifically to perform implicit type conversion
 
 #include <string>
-#include <iostream>
+
+// Functional Style Programming definitions:
 
 template<typename InputType>
 using Predicate = bool (*)(InputType);
@@ -19,10 +20,10 @@ using Function = OUT (*)(IN);
 template<typename IN1, typename IN2, typename OUT>
 using BiFunction = OUT (*)(IN1, IN2);
 
+// Common Character Types for Lexical Analysis:
+
 using CommonCharType = char;
 using CommonStringType = std::string;
-
-#define CommonOutputStream std::cout
 
 inline CommonStringType toCommonStringType(const std::string& string){
     return string;

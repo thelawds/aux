@@ -8,6 +8,7 @@
 #include "../src/scanner/components/IdentifierAndKeywordScanner.h"
 #include "../src/scanner/components/StringLiteralScanner.h"
 #include "../src/scanner/components/OperatorScanner.h"
+#include "glog/logging.h"
 
 using namespace std;
 using namespace aux::scanner;
@@ -62,9 +63,7 @@ TEST(ScannerComponentsTest, NumericConstantsScannerPositiveTest) {
 
         auto result = scanner.next();
         EXPECT_TRUE(result);
-        printf(
-                "Token result for String (%ls): (%ls)\n", input.c_str(), result.getToken().c_str()
-        );
+        LOG(INFO) << "Token result for String " << input.c_str() << ": " << result.getToken().c_str();
     }
 
 }
@@ -88,10 +87,10 @@ TEST(ScannerComponentsTest, NumericConstantsScannerNegativeTest) {
 TEST(ScannerComponentsTest, StringLiteralScannerPositiveTest) {
     vector<string> stringLiterals{
             "\' Single Quote String \'",
-            "\'Single Quote String \\\' \'",
+            R"('Single Quote String \' ')",
 
             "\"Double Quote String \"",
-            "\" Double Quote String \\\" \\t \\t \\t \\r\\n \"",
+            R"(" Double Quote String \" \t \t \t \r\n ")",
 
     };
 
@@ -101,27 +100,31 @@ TEST(ScannerComponentsTest, StringLiteralScannerPositiveTest) {
         auto result = scanner.next();
         auto resultToken = dynamic_pointer_cast<TokenStringLiteral>(result.construct(span));
         EXPECT_TRUE(result);
-        printf(
-                "Token of type %d result for string (%s): (%ls) at (%ls)\n",
-                resultToken->getType(), str.c_str(), result.getToken().c_str(), resultToken->getValue().c_str()
-        );
+        LOG(INFO)
+                << "Token of type " << *resultToken->getType()
+                << " result for string " << str
+                << ": " << result.getToken()
+                << " at " << resultToken->getValue();
     }
 }
 
 TEST(ScannerComponentsTest, OperatorScannerTest) {
-    vector<string> stringLiterals{
+    vector<string> operators{
             "+", "-", "*", "/", "%", "^", "#", "&", "~", "|", ";", ":",
             ",", ".", "<", ">", "=", "(", ")", "{", "}", "[", "]",
             "<<", ">>", "//", "==", "~=", "<=", ">=", "::", "..", "..."
     };
 
-    for (const string &str: stringLiterals) {
+    for (const string &str: operators) {
         IndexedStringStream stream{toCommonStringType(str)};
         OperatorScanner scanner{stream};
         auto result = scanner.next();
         auto resultTokenType = dynamic_pointer_cast<TokenOperator>(result.construct(span))->getOperator();
         EXPECT_TRUE(result);
-        printf("Token result for string %s: %d and %ls\n", str.c_str(), resultTokenType, result.getToken().c_str());
+        LOG(INFO)
+                << "Token result for string " << str
+                << ": " << *resultTokenType
+                << " and " << result.getToken();
     }
 }
 
@@ -141,7 +144,9 @@ TEST(ScannerComponentsTest, IdentifierAndKeywordScannerTest) {
         auto result = scanner.next();
         auto resultTokenType = dynamic_pointer_cast<TokenKeyword>(result.construct(span))->getKeyword();
         EXPECT_TRUE(result);
-        printf("Token result for string (%s): [%d : %ls]\n", str.c_str(), resultTokenType, result.getToken().c_str());
+        LOG(INFO)
+                << "Token result for string " << str
+                << ": [" << *resultTokenType << " : " << result.getToken() << "]";
     }
 
     for (const string &str: identifiers) {
@@ -150,7 +155,9 @@ TEST(ScannerComponentsTest, IdentifierAndKeywordScannerTest) {
         auto result = scanner.next();
         auto resultToken = dynamic_pointer_cast<TokenIdentifier>(result.construct(span));
         EXPECT_TRUE(result);
-        printf("Token result for string (%s): [%ls]\n", str.c_str(), resultToken->getValue().c_str());
+        LOG(INFO)
+                << "Token result for string " << str
+                << ": [" << resultToken->getValue() << "]";
     }
 }
 
