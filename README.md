@@ -1,6 +1,15 @@
 # Aux
 Aux is a simple lua compiler to LLVM
 
+Project Status:
+- [X] Lexical analysis
+- [ ] Syntax Analysis
+- [ ] Semantic Analysis
+- [ ] Basic Optimizations
+- [ ] Code Generation
+- [ ] Multi-file Projects Support
+- [ ] Concurrency Support
+
 [Language Reference](https://www.lua.org/manual/5.4/contents.html#contents)
 
 ## Requirenments:
