@@ -16,6 +16,11 @@ using namespace aux::ir::tokens;
 using namespace aux::scanner::input_stream;
 
 std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
+    if (hasPeekToken) {
+        hasPeekToken = false;
+        return peekToken;
+    }
+
     while (std::isspace(_stream.peek())) {
         _stream.get();
     }
@@ -51,4 +56,14 @@ ModularScanner::ModularScanner(IIndexedStream<CommonCharType> &stream) : _stream
     _components.push_back(std::make_unique<components::IdentifierAndKeywordScanner>(_stream));
     _components.push_back(std::make_unique<components::StringLiteralScanner>(_stream));
     _components.push_back(std::make_unique<components::NumericConstantsDFSAScanner>(_stream));
+}
+
+std::shared_ptr<Token> ModularScanner::peek() const {
+    if (hasPeekToken) {
+        return peekToken;
+    } else {
+        this->peekToken = next();
+        hasPeekToken = true;
+        return peekToken;
+    }
 }

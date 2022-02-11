@@ -17,6 +17,9 @@ namespace aux::scanner {
         [[nodiscard]]
         virtual std::shared_ptr<ir::tokens::Token> next() const = 0;
 
+        [[nodiscard]]
+        virtual std::shared_ptr<ir::tokens::Token> peek() const = 0;
+
     };
 
 }

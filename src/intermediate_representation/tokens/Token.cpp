@@ -87,6 +87,10 @@ const CommonStringType &TokenIdentifier::getValue() const {
     return this->_value;
 }
 
+std::string TokenIdentifier::getRawValue() const {
+    return getValue();
+}
+
 TokenKeyword::TokenKeyword(const CommonStringType &value, const Span &span) : Token(span), _keyword(keywords.at(value)) {}
 
 TokenType TokenKeyword::getType() const {
@@ -97,6 +101,10 @@ const Keyword &TokenKeyword::getKeyword() {
     return this->_keyword;
 }
 
+std::string TokenKeyword::getRawValue() const {
+    return *this->_keyword;
+}
+
 TokenStringLiteral::TokenStringLiteral(CommonStringType value, const Span &span) : Token(span), _value(std::move(value)) {}
 
 TokenType TokenStringLiteral::getType() const {
@@ -105,6 +113,10 @@ TokenType TokenStringLiteral::getType() const {
 
 const CommonStringType &TokenStringLiteral::getValue() const {
     return _value;
+}
+
+std::string TokenStringLiteral::getRawValue() const {
+    return getValue();
 }
 
 TokenType TokenOperator::getType() const {
@@ -118,10 +130,18 @@ const Operator &TokenOperator::getOperator() const {
     return _value;
 }
 
+std::string TokenOperator::getRawValue() const {
+    return *this->getOperator();
+}
+
 TokenUndefined::TokenUndefined(const Span &span) : Token(span) {}
 
 TokenType TokenUndefined::getType() const {
     return TokenType::UNDEFINED;
+}
+
+std::string TokenUndefined::getRawValue() const {
+    return "";
 }
 
 
@@ -134,5 +154,9 @@ TokenType TokenComment::getType() const {
 
 const CommonStringType &TokenComment::getValue() const {
     return _value;
+}
+
+std::string TokenComment::getRawValue() const {
+    return getValue();
 }
 

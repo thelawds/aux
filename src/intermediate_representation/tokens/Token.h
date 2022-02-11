@@ -141,6 +141,8 @@ namespace aux::ir::tokens {
         [[nodiscard]]
         virtual TokenType getType() const = 0;
 
+        virtual std::string getRawValue() const = 0;
+
     private:
         const Span _span;
 
@@ -151,6 +153,9 @@ namespace aux::ir::tokens {
 
         [[nodiscard]]
         TokenType getType() const override;
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
     };
 
     struct TokenComment : Token {
@@ -162,6 +167,9 @@ namespace aux::ir::tokens {
 
         [[nodiscard]]
         const CommonStringType &getValue() const;
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
 
     private:
         CommonStringType _value;
@@ -176,6 +184,9 @@ namespace aux::ir::tokens {
         [[nodiscard]]
         const CommonStringType &getValue() const;
 
+        [[nodiscard]]
+        std::string getRawValue() const override;
+
     private:
         const CommonStringType _value;
     };
@@ -187,6 +198,9 @@ namespace aux::ir::tokens {
         TokenType getType() const override;
 
         const Keyword &getKeyword();
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
 
         friend std::ostream &operator<<(std::ostream &os, const TokenKeyword &keyword);
 
@@ -209,7 +223,7 @@ namespace aux::ir::tokens {
         };
 
         [[nodiscard]]
-        inline CommonStringType getRawValue() const {
+        inline std::string getRawValue() const override {
             return _string_value;
         }
 
@@ -228,6 +242,9 @@ namespace aux::ir::tokens {
         [[nodiscard]]
         const CommonStringType &getValue() const;
 
+        [[nodiscard]]
+        std::string getRawValue() const override;
+
     private:
         CommonStringType _value;
     };
@@ -240,6 +257,9 @@ namespace aux::ir::tokens {
 
         [[nodiscard]]
         const Operator &getOperator() const;
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
 
     private:
         Operator _value;

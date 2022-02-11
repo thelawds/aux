@@ -20,9 +20,15 @@ namespace aux::scanner {
         [[nodiscard]]
         std::shared_ptr<ir::tokens::Token> next() const override;
 
+        [[nodiscard]]
+        std::shared_ptr<ir::tokens::Token> peek() const override;
+
     private:
         std::vector<std::unique_ptr<components::IScannerComponent>> _components {};
         input_stream::IIndexedStream<CommonCharType> &_stream;
+
+        mutable std::shared_ptr<ir::tokens::Token> peekToken {nullptr};
+        mutable bool hasPeekToken {false};
     };
 }
 

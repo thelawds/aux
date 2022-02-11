@@ -30,7 +30,7 @@ add_executable(
         src/scanner/components/CommentsScanner.cpp
         src/scanner/input_stream/PreprocessedFileInputStream.cpp
         src/scanner/ModularScanner.cpp
-)
+        src/intermediate_representation/ast/ArithmeticLogicalExpressionTree.h src/parser/Parser.cpp src/parser/Parser.h src/intermediate_representation/ast/TreeNode.h src/intermediate_representation/ast/ArgsTree.h src/intermediate_representation/ast/FunctionCallTree.h src/intermediate_representation/ast/PeSuffixTree.h src/intermediate_representation/ast/PrefixExprTree.h)
 
 add_executable(
         tests
@@ -45,7 +45,14 @@ add_executable(
         src/scanner/input_stream/PreprocessedFileInputStream.cpp
         src/scanner/ModularScanner.cpp
         test/ModularScannerTest.cpp
-)
+        test/ParserTest.cpp
+        src/parser/Parser.cpp
+        src/parser/Parser.h
+        src/intermediate_representation/ast/TreeNode.h
+        src/intermediate_representation/ast/ArgsTree.h
+        src/intermediate_representation/ast/VarTree.h
+        src/intermediate_representation/ast/PeSuffixTree.h)
+
 
 # Setting Up Frameworks
 # Testing

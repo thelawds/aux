@@ -3,6 +3,7 @@
 --- Created by miserable.
 --- DateTime: 05.02.2022 0:40
 ---
+
 b = [[sdsd]]
 function fact (n)
     if n == 0e0 then
@@ -11,6 +12,8 @@ function fact (n)
         return n * fact(n-1)
     end
 end
+
+x = foo[12 + 5].A[3](31, 23):k(13);
 
 print("enter a number:")
 a = io.read("*number")        -- read a number
