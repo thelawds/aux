@@ -1,0 +1,84 @@
+
+# camelCase: 		Non-terminal
+# PascalCase:		Terminal
+# CAPS_UNDERSCORE:	Keyword
+
+# Compilation units:
+
+chunk ::= block
+block ::= {stat} [retstat]
+
+# Top Level Statements:
+
+stat ::= ';' 
+	   | assignment 
+	   | funccall
+	   | label 
+	   | BREAK
+	   | GOTO Identifier 
+	   | DO block END
+	   | WHILE exp DO block END 
+	   | REPEAT block UNTIL exp 
+	   | IF exp THEN block {ELSEIF exp THEN block} [ELSE block] END
+	   | FOR Identifier '=' exp ',' exp [',' exp] DO block END 
+	   | FOR Identifierlist IN explist DO block END
+	   | FUNCTION funcIdentifier funcbody 
+	   | LOCAL FUNCTION Identifier funcbody 
+	   | LOCAL attIdentifierlist ['=' explist] 
+
+retstat ::= RETURN [explist] [';']
+
+# Concrete Statements:
+
+assignment ::= varlist '=' explist
+
+funccall ::= prefixexp funcCallSuffix								# functioncall ::= prefixexp args | prefixexp ':' Identifier args 
+
+funcCallSuffix ::= [':' Identifier] args 							# added
+
+funcIdentifier ::= Identifier {'.' Identifier} [':' Identifier]
+
+funcbody ::= '(' [parlist] ')' block end
+
+label ::= '::' Identifier '::'
+
+# Expressions:
+
+prefixexp ::= (Identifier | '(' exp ')') {(peSuffix | funcCallSuffix)}			# done. Changed from: prefixexp ::= var | functioncall | '(' exp ')'
+peSuffix ::= '[' exp ']' | '.' Identifier 										# done: added
+exp ::= functiondef 
+	  | tableconstructor 														# done
+	  | arlExp																	# done
+
+tableconstructor ::= '{' [fieldlist] '}'										# done
+
+functiondef ::= FUNCTION funcbody
+
+# Arithmetic-Logical Expressions:
+
+arlExpression 			::= logicalAndTerm {OR logicalOrTerm}										# done, Left-Associative
+logicalAndTerm 			::= relationalTerm {AND relationalTerm}										# done, Left-Associative
+relationalTerm 			::= bitwiseOrTerm {('<' | '>' | '<=' | '>=' | '~=' | '==') bitwiseOrTerm}	# done, Left-Associative
+bitwiseOrTerm 			::= bitwiseXorTerm {'|' bitwiseXorTerm}										# done, Left-Associative
+bitwiseXorTerm 			::= bitwiseAndTerm {'~' bitwiseAndTerm}										# done, Left-Associative
+bitwiseAndTerm 			::= shiftedTerm {'&' shiftedTerm}											# done, Left-Associative
+shiftedTerm 			::= stringConcatenationTerm {('<<' | '>>') stringConcatenationTerm}			# done, Left-Associative
+stringConcatenationTerm ::= summationTerm {'..' summationTerm}										# done, Left-Associative
+summationTerm           ::= productTerm {('+' | '-') productTerm}									# done, Left-Associative
+productTerm  			::= unaryTerm {('*' | '/' | '//' | '%') unaryTerm}							# done, Left-Associative
+unaryTerm    			::= [(NOT | '#' | '-' | '~')] exponentTerm									# done
+exponentTerm      		::= term ['^' exponentTerm]													# done, Right-Associative
+term 					::= NIL | FALSE | TRUE | Numeral | LiteralString | prefixexp 				# done
+
+# Other Non-Terminals:
+args ::= '(' [explist] ')' | tableconstructor | LiteralString 					# done
+varlist::= var {',' var}														# done
+explist ::= exp {',' exp}														# done
+fieldlist ::= field {(',' | ';') field} [(',' | ';')]							# done
+field ::= '[' exp ']' '=' exp | Identifier '=' exp | exp						# done
+var ::= Identifier {peSuffix} | '(' exp ')' {peSuffix}							# done. Changed from: var ::=  Identifier | prefixexp '[' exp ']' | prefixexp '.' Identifier
+
+Identifierlist ::= Identifier {',' Identifier}						
+attIdentifierlist ::=  Identifier attrib {',' Identifier attrib}
+parlist ::= Identifierlist [',' '...'] | '...'
+attrib ::= ['<' Identifier '>']

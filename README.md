@@ -15,3 +15,4 @@ Project Status:
 ## Requirenments:
 - [GLog](https://github.com/google/glog)
 - [GFlags](https://github.com/gflags/gflags)
+- [OGDF](https://github.com/ogdf/ogdf)

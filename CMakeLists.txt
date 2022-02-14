@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED 20)
 find_package(glog 0.6.0 REQUIRED)
 find_package(gflags REQUIRED)
 
+set(OGDF_CONFIG_SEARCH_PATH PATH "./.libs/ogdf/")
+find_package(OGDF)
+
 # Include tests framework:
 include(FetchContent)
 FetchContent_Declare(
@@ -30,7 +33,7 @@ add_executable(
         src/scanner/components/CommentsScanner.cpp
         src/scanner/input_stream/PreprocessedFileInputStream.cpp
         src/scanner/ModularScanner.cpp
-        src/intermediate_representation/ast/ArithmeticLogicalExpressionTree.h src/parser/Parser.cpp src/parser/Parser.h src/intermediate_representation/ast/TreeNode.h src/intermediate_representation/ast/ArgsTree.h src/intermediate_representation/ast/FunctionCallTree.h src/intermediate_representation/ast/PeSuffixTree.h src/intermediate_representation/ast/PrefixExprTree.h)
+        src/parser/Parser.cpp src/parser/Parser.h src/intermediate_representation/ast/Tree.h src/Exception.h)
 
 add_executable(
         tests
@@ -48,15 +51,13 @@ add_executable(
         test/ParserTest.cpp
         src/parser/Parser.cpp
         src/parser/Parser.h
-        src/intermediate_representation/ast/TreeNode.h
-        src/intermediate_representation/ast/ArgsTree.h
-        src/intermediate_representation/ast/VarTree.h
-        src/intermediate_representation/ast/PeSuffixTree.h)
-
+        src/intermediate_representation/ast/Tree.h
+)
 
 # Setting Up Frameworks
 # Testing
-target_link_libraries(tests gtest_main glog::glog)
+target_include_directories(tests PRIVATE ${OGDF_INCLUDE_DIRS})
+target_link_libraries(tests gtest_main glog::glog OGDF)
 include(GoogleTest)
 gtest_discover_tests(tests)
 

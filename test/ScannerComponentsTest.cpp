@@ -42,6 +42,10 @@ struct IndexedStringStream: input_stream::IIndexedStream<CommonCharType> {
         return 0;
     }
 
+    string skipToTheEndOfCurrRow() override {
+        return "";
+    }
+
 private:
     basic_stringstream<CommonCharType> _stream;
 };

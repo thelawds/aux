@@ -250,7 +250,9 @@ namespace aux::ir::tokens {
     };
 
     struct TokenOperator : Token {
-        explicit TokenOperator(const CommonStringType &value, const Span &span);
+        TokenOperator(const CommonStringType &value, const Span &span);
+
+        TokenOperator(const Operator &value, const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;

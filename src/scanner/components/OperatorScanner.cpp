@@ -112,7 +112,6 @@ CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
 
     }
 
-
 }
 
 bool OperatorScanner::canProcessNextToken() const {

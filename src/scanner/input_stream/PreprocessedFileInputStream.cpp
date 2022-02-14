@@ -23,11 +23,13 @@ CommonCharType aux::scanner::input_stream::PreprocessedFileInputStream::get() {
     }
 
     if (curr == '\n') {
+        currRow = "";
         rowSizes.push_back(col);
         col = 0;
         ++row;
     } else {
         ++col;
+        currRow.push_back(curr);
     }
 
     _prevReturned = curr;
@@ -60,4 +62,13 @@ uint16_t aux::scanner::input_stream::PreprocessedFileInputStream::getRow() {
 
 uint16_t aux::scanner::input_stream::PreprocessedFileInputStream::getColumn() {
     return col;
+}
+
+std::string aux::scanner::input_stream::PreprocessedFileInputStream::skipToTheEndOfCurrRow() {
+    while (peek() != '\n') {
+        get();
+    }
+    auto result = currRow;
+    get();
+    return result;
 }

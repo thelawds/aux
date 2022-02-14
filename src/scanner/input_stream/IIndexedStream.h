@@ -22,6 +22,8 @@ namespace aux::scanner::input_stream {
 
         virtual uint16_t getColumn() = 0;
 
+        virtual std::string skipToTheEndOfCurrRow() = 0;
+
     };
 
 }

@@ -1,11 +1,9 @@
-//
-// Created by miserable on 08.02.2022.
-//
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-err58-cpp"
 
 #include "../src/util/Defines.h"
 
 #include <gtest/gtest.h>
-#include <cmath>
 
 #include <string>
 #include <iostream>
@@ -16,10 +14,24 @@
 #include "../src/scanner/ModularScanner.h"
 #include "../src/parser/Parser.h"
 
+#include <ogdf/basic/basic.h>
+#include <ogdf/basic/System.h>
+#include <ogdf/basic/GraphAttributes.h>
+#include <ogdf/fileformats/GraphIO.h>
+#include <ogdf/layered/MedianHeuristic.h>
+#include <ogdf/layered/OptimalHierarchyLayout.h>
+#include <ogdf/layered/OptimalRanking.h>
+#include <ogdf/layered/SugiyamaLayout.h>
+
 using namespace std;
+using namespace ogdf;
 using namespace aux::scanner;
 using namespace aux::parser;
 using namespace aux::ir::tokens;
+using namespace aux::ir::ast;
+
+#define COLOR_LEMON {253, 255,0}
+#define COLOR_RED {255, 0, 0}
 
 struct IndexedStringStream : input_stream::IIndexedStream<CommonCharType> {
 
@@ -28,16 +40,33 @@ struct IndexedStringStream : input_stream::IIndexedStream<CommonCharType> {
     ) {}
 
     CommonCharType get() override {
+        if (!peeked) {
+            ++col;
+        }
+        peeked = false;
         auto curr = static_cast<CommonCharType>(_stream.get());
+
+        if (curr == '\n') {
+            currRow = "";
+        } else {
+            currRow.push_back(curr);
+        }
+
         return curr;
     }
 
     CommonCharType peek() override {
+        if (!peeked) {
+            ++col;
+            peeked = true;
+        }
+
         return static_cast<CommonCharType>(_stream.peek());
     }
 
     void unget() override {
         _stream.unget();
+        --col;
     }
 
     uint16_t getRow() override {
@@ -45,132 +74,86 @@ struct IndexedStringStream : input_stream::IIndexedStream<CommonCharType> {
     }
 
     uint16_t getColumn() override {
-        return 0;
+        return col;
+    }
+
+    string skipToTheEndOfCurrRow() override {
+        while (peek() != '\n') {
+            get();
+        }
+        auto result = currRow;
+        get();
+        return result;
     }
 
 private:
     basic_stringstream<CommonCharType> _stream;
+    int col{-1};
+    bool peeked{false};
+    string currRow;
 };
 
-template<typename _AST_Tree>
-int calcDepth(const shared_ptr<_AST_Tree> &tree) {
-    int depth = 1;
+void makeGraph(Graph &G, GraphAttributes &GA, node currNode, shared_ptr<BaseTree> tree){
+    GA.label(currNode) = tree->getPrintValue();
+    GA.shape(currNode) = ogdf::Shape::Ellipse;
+    GA.width(currNode) = 150;
+    GA.height(currNode) = 150;
 
-    if (tree->left == nullptr && tree->right == nullptr) {
-        return depth;
+    if (tree->getLeft()) {
+        node left = G.newNode();
+        edge toLeft = G.newEdge(currNode, left);
+        GA.strokeColor(toLeft) = COLOR_LEMON;
+        GA.strokeWidth(toLeft) = 5.f;
+        makeGraph(G, GA, left, tree->getLeft());
     }
 
-    int ldepth = 0;
-    if (tree->left) {
-        ldepth += calcDepth(tree->left);
+    if (tree->getRight()) {
+        node right = G.newNode();
+        edge toRight = G.newEdge(currNode, right);
+        GA.strokeColor(toRight) = COLOR_RED;
+        GA.strokeWidth(toRight) = 5.f;
+        makeGraph(G, GA, right, tree->getRight());
     }
-
-    int rdepth = 0;
-    if (tree->right) {
-        rdepth += calcDepth(tree->right);
-    }
-
-
-    return depth + max(ldepth, rdepth);
-
 }
 
-string make8Sym(const string &s) {
-    string res = "[";
-    for (int i = 0; i < min(8, int(s.length())); ++i) {
-        res += s[i];
-    }
-    res += "]";
-    for (size_t i = res.size() - 1; i < 8; ++i) {
-        res += " ";
-    }
-    return res;
-}
+void drawGraph(const shared_ptr<BaseTree> &tree){
+    Graph G;
+    GraphAttributes GA(
+            G, GraphAttributes::nodeGraphics | GraphAttributes::edgeGraphics
+               | GraphAttributes::nodeLabel | GraphAttributes::nodeStyle
+               | GraphAttributes::edgeStyle
+    );
 
-int64_t pow(int64_t a, int64_t b) {
-    int64_t res = 1;
-    while (b-- >= 0) {
-        res *= a;
-    }
-    return res;
-}
+    makeGraph(G, GA, G.newNode(), tree);
 
-template<typename _AST_Tree>
-void printTree(const shared_ptr<_AST_Tree> &tree) {
-    int64_t depth = calcDepth(tree) - 1;
-    int64_t size = ::pow(2, depth + 1) + 1;
-    list<tuple<int64_t, int64_t, int64_t, shared_ptr<_AST_Tree>>> trees;
-    vector<vector<string>> result(size);
-    for (int64_t i = 0; i < size; ++i) {
-        result[i].resize(size);
-        for (int64_t j = 0; j < size; ++j) {
-            result[i][j] = "          ";
-        }
-    }
+    SugiyamaLayout SL;
+    SL.setRanking(new OptimalRanking);
+    SL.setCrossMin(new MedianHeuristic);
 
+    auto *ohl = new OptimalHierarchyLayout;
+    ohl->layerDistance(50.0);
+    ohl->nodeDistance(100.0);
+    ohl->weightBalancing(0.8);
+    SL.setLayout(ohl);
 
-    trees.emplace_back(size / 2, 0, ::pow(2, depth - 1), tree);
-    while (!trees.empty()) {
-        auto[row, col, shiftChange, currTree] = trees.front();
-        trees.pop_front();
+    SL.call(GA);
 
-        if (currTree->right) {
-            trees.emplace_back(row - shiftChange, col + 1, shiftChange / 2, currTree->right);
-            for (int64_t i = row; i > row - shiftChange; --i) {
-                result[i][col] = string{" |        "};
-            }
-            result[row - shiftChange][col] = " /------->";
-        }
-        if (currTree->left) {
-            trees.emplace_back(row + shiftChange, col + 1, shiftChange / 2, currTree->left);
-            for (int64_t i = row; i < row + shiftChange; ++i) {
-                result[i][col] = string{" |        "};
-            }
-            result[row + shiftChange][col] = " \\------->";
-        }
-
-        if (currTree->op) {
-            result[row][col] = make8Sym(*static_pointer_cast<TokenOperator>(currTree->op)->getOperator());
-        } else if (currTree->value) {
-            switch (currTree->value->getType()) {
-                case TokenType::NUMERIC_DECIMAL:
-                    result[row][col] = make8Sym(static_pointer_cast<TokenDecimal>(currTree->value)->getRawValue());
-                    break;
-                case TokenType::NUMERIC_HEX:
-                    result[row][col] = make8Sym(static_pointer_cast<TokenHex>(currTree->value)->getRawValue());
-                    break;
-                case TokenType::NUMERIC_DOUBLE:
-                    result[row][col] = make8Sym(static_pointer_cast<TokenDouble>(currTree->value)->getRawValue());
-                    break;
-                default:
-                    result[row][col] = make8Sym("Undef.");
-                    break;
-            }
-
-        }
-
-    }
-
-    ofstream out{"../test/resources/printedTree.txt"};
-
-    for (const auto &row: result) {
-        for (const auto &col: row) {
-            out << col;
-        }
-        out << endl;
-    }
+    GraphIO::write(GA, "../test/resources/tree.svg", GraphIO::drawSVG);
 
 }
 
 TEST(ExpressionParserTest, TestSomeShit) {
-//    string test = "12 * foo^bar(32) / (18 * (x/y[15]))";
-    string test = "foo.cat()";
+//    string test = "A and B and C";
+    string test = "TRUE and 12 * foo^bar(32) / (18 * x/y[15]) <= 435 and 18 > 9 or bac-cab|32 > 0";
+//    string test = "foo.cat({abc = 'Stepan', def='Vasiliy'}, \"Vova\")";
+//    string test = "43 + (73 - 23) * cat + 3434.32 * not 'vovanchik'^avc^12 / (32 * 23)";
     IndexedStringStream stream{test};
     std::shared_ptr<ModularScanner> scanner = make_shared<ModularScanner>(stream);
     Parser exprParser{scanner};
 
     auto tree = exprParser.parse();
-    auto res = static_pointer_cast<aux::ir::ast::PrefixExprTree>(tree);
     cout << "Done";
-//    printTree(tree);
+    drawGraph(tree);
 }
+
+#pragma clang diagnostic pop

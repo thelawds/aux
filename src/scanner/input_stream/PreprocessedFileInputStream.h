@@ -28,12 +28,15 @@ namespace aux::scanner::input_stream {
 
         uint16_t getColumn() override;
 
+        std::string skipToTheEndOfCurrRow() override;
+
     private:
         const std::unique_ptr<std::basic_ifstream<CommonCharType>> _stream;
         CommonCharType _prevReturned{};
         bool _prevReturnSubstituted{false};
         uint16_t row{0}, col{0};
         std::vector<uint16_t> rowSizes;
+        std::string currRow;
     };
 
 }

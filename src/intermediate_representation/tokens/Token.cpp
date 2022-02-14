@@ -126,6 +126,9 @@ TokenType TokenOperator::getType() const {
 TokenOperator::TokenOperator(const CommonStringType &value, const Span &span)
         : Token(span), _value(operators.at(value)) {}
 
+TokenOperator::TokenOperator(const Operator &value, const Span &span)
+        : Token(span), _value(value) {}
+
 const Operator &TokenOperator::getOperator() const {
     return _value;
 }

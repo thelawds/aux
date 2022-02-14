@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 
-namespace aux::fsa {
+namespace aux::fsa { // todo: move to Exception.h
 
     struct PatternMatchingException : std::runtime_error {
         PatternMatchingException(const std::string &exception, char errorAt)
