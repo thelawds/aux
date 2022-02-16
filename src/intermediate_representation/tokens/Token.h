@@ -23,7 +23,7 @@ namespace aux::ir::tokens {
         STRING_LITERAL,
         OPERATOR,
         COMMENT,
-        UNDEFINED
+        EOF_OR_UNDEFINED
     };
 
     inline std::string &operator*(const TokenType &type) {
@@ -36,7 +36,7 @@ namespace aux::ir::tokens {
                 {TokenType::STRING_LITERAL, "String Literal"},
                 {TokenType::OPERATOR, "Operator"},
                 {TokenType::COMMENT, "Comment"},
-                {TokenType::UNDEFINED, "Undefined"}
+                {TokenType::EOF_OR_UNDEFINED, "Undefined"}
         };
 
         return keywords.at(type);
@@ -130,6 +130,11 @@ namespace aux::ir::tokens {
         const uint16_t column;
 
         Span(const uint16_t row, const uint16_t column) : row(row), column(column) {}
+
+        friend std::ostream &operator<<(std::ostream &os, const Span &span) {
+            os << "(" << span.row << ", " << span.column << ")";
+            return os;
+        }
     };
 
     struct Token {
@@ -148,8 +153,8 @@ namespace aux::ir::tokens {
 
     };
 
-    struct TokenUndefined : Token {
-        explicit TokenUndefined(const Span &span);
+    struct TokenEofOrUndefined : Token {
+        explicit TokenEofOrUndefined(const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;

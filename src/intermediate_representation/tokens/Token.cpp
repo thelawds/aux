@@ -137,14 +137,14 @@ std::string TokenOperator::getRawValue() const {
     return *this->getOperator();
 }
 
-TokenUndefined::TokenUndefined(const Span &span) : Token(span) {}
+TokenEofOrUndefined::TokenEofOrUndefined(const Span &span) : Token(span) {}
 
-TokenType TokenUndefined::getType() const {
-    return TokenType::UNDEFINED;
+TokenType TokenEofOrUndefined::getType() const {
+    return TokenType::EOF_OR_UNDEFINED;
 }
 
-std::string TokenUndefined::getRawValue() const {
-    return "";
+std::string TokenEofOrUndefined::getRawValue() const {
+    return "EOF or Undefined Token";
 }
 
 

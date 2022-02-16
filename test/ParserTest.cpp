@@ -12,6 +12,7 @@
 
 #include "glog/logging.h"
 #include "../src/scanner/ModularScanner.h"
+#include "../src/scanner/input_stream/PreprocessedFileInputStream.h"
 #include "../src/parser/Parser.h"
 
 #include <ogdf/basic/basic.h>
@@ -26,6 +27,7 @@
 using namespace std;
 using namespace ogdf;
 using namespace aux::scanner;
+using namespace aux::scanner::input_stream;
 using namespace aux::parser;
 using namespace aux::ir::tokens;
 using namespace aux::ir::ast;
@@ -33,9 +35,9 @@ using namespace aux::ir::ast;
 #define COLOR_LEMON {253, 255,0}
 #define COLOR_RED {255, 0, 0}
 
-struct IndexedStringStream : input_stream::IIndexedStream<CommonCharType> {
+struct ParserIndexedStringStream: input_stream::IIndexedStream<CommonCharType> {
 
-    explicit IndexedStringStream(const CommonStringType &string) : _stream(
+    explicit ParserIndexedStringStream(const CommonStringType &string) : _stream(
             basic_stringstream<CommonCharType>{string}
     ) {}
 
@@ -144,15 +146,27 @@ void drawGraph(const shared_ptr<BaseTree> &tree){
 
 TEST(ExpressionParserTest, TestSomeShit) {
 //    string test = "A and B and C";
-    string test = "TRUE and 12 * foo^bar(32) / (18 * x/y[15]) <= 435 and 18 > 9 or bac-cab|32 > 0";
+//    string test = "TRUE and 12 * foo^bar(32) / (18 * x/y[15]) <= 435 and 18 > 9 or bac-cab|32 > 0";
 //    string test = "foo.cat({abc = 'Stepan', def='Vasiliy'}, \"Vova\")";
 //    string test = "43 + (73 - 23) * cat + 3434.32 * not 'vovanchik'^avc^12 / (32 * 23)";
-    IndexedStringStream stream{test};
+//    string test = "a,b,c,d, ";
+//    string test = "A = A and B and C, 132";
+//    string test = "for and = 12,25+7 do end";
+    string test = "a.x.y[123+2](123+33, 9*21*b)";
+    ParserIndexedStringStream stream{test};
     std::shared_ptr<ModularScanner> scanner = make_shared<ModularScanner>(stream);
-    Parser exprParser{scanner};
+    Parser parser{scanner};
 
-    auto tree = exprParser.parse();
-    cout << "Done";
+    auto tree = parser.parse();
+    drawGraph(tree);
+}
+
+TEST(ParserTest, ForFile){
+    PreprocessedFileInputStream fis{"../test/resources/test_cases/BigLuaProgram.lua"};
+    std::shared_ptr<ModularScanner> scanner = make_shared<ModularScanner>(fis);
+    Parser fromFileParser{scanner};
+
+    auto tree = fromFileParser.parse();
     drawGraph(tree);
 }
 

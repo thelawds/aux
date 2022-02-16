@@ -11,7 +11,7 @@ using namespace aux::scanner;
 using namespace aux::ir::tokens;
 
 std::shared_ptr<Token> defaultConstructionFunction(const CommonStringType &token, const Span &span) {
-    return make_shared<TokenUndefined>(span);
+    return make_shared<TokenEofOrUndefined>(span);
 }
 
 ScanTokenResult::ScanTokenResult(runtime_error &runtimeError)

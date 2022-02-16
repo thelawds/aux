@@ -4,7 +4,7 @@
 --- DateTime: 05.02.2022 0:40
 ---
 
-b = [[sdsd]]
+b = sdsd
 function fact (n)
     if n == 0e0 then
         return 1

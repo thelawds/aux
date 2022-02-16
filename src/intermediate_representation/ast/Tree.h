@@ -27,7 +27,16 @@ namespace aux::ir::ast {
             TABLE_FIELD_DECLARATION,
             BINARY_OPERATION,
             UNARY_OPERATION,
-            LIST_ELEM
+            ATTRIBUTE_IDENTIFIER,
+            LIST_ELEM,
+            FUNCTION_BODY,
+            FUNCTION_DEFINITION,
+            LOCAL_FUNCTION_DEFINITION,
+            WHILE_LOOP,
+            REPEAT_UNTIL_LOOP,
+            IF_THEN,
+            ELSE,
+            FUNCTION_CALL
         };
 
         const Type type{Type::NONE};
@@ -48,11 +57,20 @@ namespace aux::ir::ast {
 
         inline std::string getPrintValue() override {
             static std::unordered_map<Type, std::string> types = {
-                    {Type::NONE,                    "None"},
-                    {Type::TABLE_FIELD_DECLARATION, "Table Field Declaration"},
-                    {Type::BINARY_OPERATION,        "Binary Operation"},
-                    {Type::UNARY_OPERATION,         "Unary Operation"},
-                    {Type::LIST_ELEM,               "List Element"}
+                    {Type::NONE,                      "None"},
+                    {Type::TABLE_FIELD_DECLARATION,   "Table Field Declaration"},
+                    {Type::BINARY_OPERATION,          "Binary Operation"},
+                    {Type::UNARY_OPERATION,           "Unary Operation"},
+                    {Type::ATTRIBUTE_IDENTIFIER,      "Attribute Identifier"},
+                    {Type::LIST_ELEM,                 "List Element"},
+                    {Type::FUNCTION_BODY,             "Function Body"},
+                    {Type::FUNCTION_DEFINITION,       "Function Definition"},
+                    {Type::LOCAL_FUNCTION_DEFINITION, "Local Function Definition"},
+                    {Type::WHILE_LOOP,                "While Loop"},
+                    {Type::REPEAT_UNTIL_LOOP,         "Repeat Until Loop"},
+                    {Type::IF_THEN,                   "If/Elseif Branch"},
+                    {Type::ELSE,                      "Else"},
+                    {Type::FUNCTION_CALL,             "Function Call"}
             };
 
             std::string result = types[type];
@@ -79,7 +97,13 @@ namespace aux::ir::ast {
             NONE,
             TABLE_FIELD_LIST,
             EXPRESSION_LIST,
-            PE_SUFFIX_LIST
+            PE_SUFFIX_LIST,
+            IDENTIFIER_LIST,
+            VARIABLE_LIST,
+            ATTRIBUTE_IDENTIFIER_LIST,
+            FUNCTION_IDENTIFIER_SEQUENCE,
+            STATEMENTS_LIST,
+            IF_THEN_ELSE
         };
 
         const Type type{Type::NONE};
@@ -97,10 +121,16 @@ namespace aux::ir::ast {
 
         inline std::string getPrintValue() override {
             static std::unordered_map<Type, std::string> types = {
-                    {Type::NONE,             "None List"},
-                    {Type::EXPRESSION_LIST,  "Expression List"},
-                    {Type::TABLE_FIELD_LIST, "Table Field List"},
-                    {Type::PE_SUFFIX_LIST,   "Prefix Expression\nSuffix List"}
+                    {Type::NONE,                         "None List"},
+                    {Type::EXPRESSION_LIST,              "Expression List"},
+                    {Type::TABLE_FIELD_LIST,             "Table Field List"},
+                    {Type::PE_SUFFIX_LIST,               "Prefix Expression\nSuffix List"},
+                    {Type::IDENTIFIER_LIST,              "Identifier List"},
+                    {Type::VARIABLE_LIST,                "Variable List"},
+                    {Type::ATTRIBUTE_IDENTIFIER_LIST,    "Attributed Identifier List"},
+                    {Type::FUNCTION_IDENTIFIER_SEQUENCE, "Function Identifier Sequence"},
+                    {Type::STATEMENTS_LIST,              "Statements List"},
+                    {Type::IF_THEN_ELSE,                 "If-Else Statement"}
             };
 
             return types[type];
@@ -135,12 +165,34 @@ namespace aux::ir::ast {
     };
 
     struct TokenTree : BaseTree {
+        enum class Type {
+            SIMPLE_TOKEN,
+            ATTRIBUTE,
+            PARAMETER_LIST,
+            LABEL,
+            DOT_IDENTIFIER,
+            COLON_IDENTIFIER,
+            GOTO_IDENTIFIER
+        };
+
+        const Type type = Type::SIMPLE_TOKEN;
         std::shared_ptr<tokens::Token> token;
 
         explicit TokenTree(std::shared_ptr<tokens::Token> token) : token(std::move(token)) {}
 
+        TokenTree(const Type type, std::shared_ptr<tokens::Token> token) : type(type), token(std::move(token)) {}
+
         inline std::string getPrintValue() override {
-            return *token->getType() + " : " + token->getRawValue();
+            std::unordered_map<Type, std::string> printValues{
+                    {Type::SIMPLE_TOKEN,     "Token"},
+                    {Type::ATTRIBUTE,        "Attribute"},
+                    {Type::PARAMETER_LIST,   "ParameterList"},
+                    {Type::LABEL,            "Label"},
+                    {Type::DOT_IDENTIFIER,   ".Identifier"},
+                    {Type::COLON_IDENTIFIER, ":Identifier"},
+                    {Type::GOTO_IDENTIFIER,  "Goto"}
+            };
+            return "(" + printValues[type] + ", " + *token->getType() + ") : " + token->getRawValue();
         }
 
         inline std::shared_ptr<BaseTree> getLeft() override {
@@ -163,8 +215,7 @@ namespace aux::ir::ast {
         explicit ArgsTree(std::shared_ptr<ListTree> listTree) : listTree(std::move(listTree)) {}
 
         inline std::string getPrintValue() override {
-            return "Function Call Arguments\n"
-                   "       [  =  ]";
+            return "Function Call Arguments";
         }
 
         inline std::shared_ptr<BaseTree> getLeft() override {
@@ -324,6 +375,34 @@ namespace aux::ir::ast {
         }
 
     };
+
+    struct ForLoopTree : BaseTree {
+        std::shared_ptr<ListTree> identifierList;
+        std::shared_ptr<ListTree> expList;
+        std::shared_ptr<ListTree> block;
+        std::shared_ptr<tokens::Token> op;
+
+        ForLoopTree(
+                std::shared_ptr<ListTree> identifierList,
+                std::shared_ptr<tokens::Token> op,
+                std::shared_ptr<ListTree> expList,
+                std::shared_ptr<ListTree> block
+        ) : identifierList(std::move(identifierList)), expList(std::move(expList)), block(std::move(block)), op(std::move(op)) {}
+
+        inline std::string getPrintValue() override {
+            return "For [" + op->getRawValue() + "] Loop";
+        }
+
+        inline std::shared_ptr<BaseTree> getLeft() override {
+            return std::make_shared<BinTree>(BinTree::Type::BINARY_OPERATION, identifierList, expList, op);
+        }
+
+        inline std::shared_ptr<BaseTree> getRight() override {
+            return block;
+        }
+
+    };
+
 
 }
 

@@ -67,7 +67,7 @@ CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
                     _stream.get();
                     return toCommonStringType("<=");
                 } else {
-                    return toCommonStringType("=");
+                    return toCommonStringType("<");
                 }
             case '>':
                 if (_stream.peek() == '>') {

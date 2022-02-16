@@ -25,18 +25,26 @@ std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
         _stream.get();
     }
 
-    if (_stream.peek() == std::char_traits<CommonCharType>::eof()) {
-        return nullptr;
-    }
-
     auto startingChar = _stream.peek();
     Span span{uint16_t(1 + _stream.getRow()), uint16_t(1 + _stream.getColumn())};
+
+    if (startingChar == std::char_traits<CommonCharType>::eof()) {
+        return std::make_shared<TokenEofOrUndefined>(span);
+    }
+
     std::vector<std::shared_ptr<std::runtime_error>> errors;
     for (const auto &component: _components) {
         if (component->canProcessNextToken()) {
+            if (_stream.peek() != startingChar) { // todo: how that happened?
+                _stream.unget();
+            }
             auto result = component->next();
             if (result) {
-                return result.construct(span);
+                auto constructed = result.construct(span);
+                if (constructed->getType() == TokenType::COMMENT) {
+                    return next();
+                }
+                return constructed;
             } else {
                 errors.push_back(result.getScannerError());
             }

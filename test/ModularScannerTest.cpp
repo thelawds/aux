@@ -21,7 +21,7 @@ using namespace aux::scanner::components;
 using namespace aux::scanner::input_stream;
 
 TEST(ModularScannerTest, TestPositiveInputCases){
-    PreprocessedFileInputStream fis{"../test/resources/test_cases/ScannerTest.lua"};
+    PreprocessedFileInputStream fis{"../test/resources/test_cases/BigLuaProgram.lua"};
     ModularScanner scanner{fis};
 
     while (true) {
@@ -81,12 +81,12 @@ TEST(ModularScannerTest, TestPositiveInputCases){
                         << " at (" << token->getSpan().row << ", " << token->getSpan().column << ")"
                         << endl;
                 break;
-            case TokenType::UNDEFINED:
+            case TokenType::EOF_OR_UNDEFINED:
                 LOG(INFO)
                         << "Undefined"
                         << " at (" << token->getSpan().row << ", " << token->getSpan().column << ")"
                         << endl;
-                break;
+                return;
         }
 
     }

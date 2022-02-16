@@ -110,6 +110,7 @@ x, y = bar('zaphod')  --> prints "zaphod  nil nil"
 
 -- Functions are first-class, may be local/global.
 -- These are the same:
+
 function f(x) return x * x end
 f = function (x) return x * x end
 
