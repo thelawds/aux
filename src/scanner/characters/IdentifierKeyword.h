@@ -18,7 +18,7 @@ namespace aux::scanner::characters {
         ANY
     };
 
-    inline bool operator>>=(const CommonCharType &c, IdentifierKeywordCharType type){
+    inline bool operator>>=(const char &c, IdentifierKeywordCharType type){
         switch (type) {
             case IdentifierKeywordCharType::ALPHABETIC:
                 return std::isalpha(c);
@@ -36,7 +36,7 @@ namespace aux::scanner::characters {
     }
 
     template<IdentifierKeywordCharType type>
-    bool satisfies(CommonCharType c){
+    bool satisfies(char c){
         return c >>= type;
     }
 

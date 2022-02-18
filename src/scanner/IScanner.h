@@ -8,7 +8,7 @@
 #include <vector>
 #include <fstream>
 #include <memory>
-#include "../intermediate_representation/tokens/Token.h"
+#include "../intermediate_representation/Token.h"
 
 namespace aux::scanner {
 

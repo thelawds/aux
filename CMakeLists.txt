@@ -24,7 +24,8 @@ enable_testing()
 add_executable(
         aux
         src/Main.cpp
-        src/intermediate_representation/tokens/Token.cpp
+        src/intermediate_representation/Token.cpp
+        src/scanner/fsa/State.h
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
         src/scanner/components/StringLiteralScanner.cpp
@@ -33,12 +34,17 @@ add_executable(
         src/scanner/components/CommentsScanner.cpp
         src/scanner/input_stream/PreprocessedFileInputStream.cpp
         src/scanner/ModularScanner.cpp
-        src/parser/Parser.cpp src/parser/Parser.h src/intermediate_representation/ast/Tree.h src/Exception.h)
+        src/parser/Parser.cpp
+        src/parser/Parser.h
+        src/intermediate_representation/Tree.h
+        src/exception/Exception.h
+)
 
 add_executable(
         tests
         test/ScannerComponentsTest.cpp
-        src/intermediate_representation/tokens/Token.cpp
+        src/intermediate_representation/Token.cpp
+        src/scanner/fsa/State.h
         src/scanner/ScanTokenResult.cpp
         src/scanner/components/NumericConstantsDFSAScanner.cpp
         src/scanner/components/StringLiteralScanner.cpp
@@ -51,7 +57,7 @@ add_executable(
         test/ParserTest.cpp
         src/parser/Parser.cpp
         src/parser/Parser.h
-        src/intermediate_representation/ast/Tree.h
+        src/intermediate_representation/Tree.h
 )
 
 # Setting Up Frameworks

@@ -7,7 +7,7 @@
 
 #include <memory>
 #include <utility>
-#include "../tokens/Token.h"
+#include "Token.h"
 
 namespace aux::ir::ast {
 

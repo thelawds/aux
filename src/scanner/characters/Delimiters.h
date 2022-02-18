@@ -14,11 +14,12 @@ namespace aux::scanner::characters {
         OPERATOR,
         SPACE,
         END_OF_FILE,
+        NON_EOF,
         ANY
     };
 
-    inline bool operator>>=(const CommonCharType &c, DelimiterCharType type) {
-        static std::unordered_set<CommonCharType> operators{
+    inline bool operator>>=(const char &c, DelimiterCharType type) {
+        static std::unordered_set<char> operators{
             '+', '-', '*', '/', '%', '^', '#', '&', '~', '|', '<', '>', '=', '(', ')', '{', '}', '[', ']', ':', ';', ',', '.'
         };
 
@@ -28,16 +29,18 @@ namespace aux::scanner::characters {
             case DelimiterCharType::SPACE:
                 return std::isspace(c);
             case DelimiterCharType::END_OF_FILE:
-                return c == std::char_traits<CommonCharType>::eof();
+                return c == std::char_traits<char>::eof();
             case DelimiterCharType::ANY:
-                return operators.contains(c) || std::isspace(c) || c == std::char_traits<CommonCharType>::eof();
+                return operators.contains(c) || std::isspace(c) || c == std::char_traits<char>::eof();
+            case DelimiterCharType::NON_EOF:
+                return operators.contains(c) || std::isspace(c);
             default:
                 return false;
         }
     }
 
     template<DelimiterCharType type>
-    bool satisfies(CommonCharType c) {
+    bool satisfies(char c) {
         return c >>= type;
     }
 

@@ -4,43 +4,34 @@
 
 #include "CommentsScanner.h"
 
-aux::scanner::components::CommentsScanner::CommentsScanner(aux::scanner::input_stream::IIndexedStream<CommonCharType> &stream)
+aux::scanner::components::CommentsScanner::CommentsScanner(aux::scanner::input_stream::IIndexedStream<char> &stream)
         : _stream(stream) {}
 
 aux::scanner::ScanTokenResult aux::scanner::components::CommentsScanner::next() const {
-    CommonCharType curr = _stream.get();
+        std::string result;
 
-    if (curr == '-') {
-        CommonStringType result;
-
-        while (_stream.peek() != std::char_traits<CommonCharType>::eof()) {
-            curr = _stream.get();
+        while (_stream.peek() != std::char_traits<char>::eof()) {
+            char curr = _stream.get();
 
             if (curr == '\n') {
                 break;
             }
 
             result += curr;
-
         }
 
         return {result, aux::scanner::makeTokenSharedPtr<ir::tokens::TokenComment>};
-    } else {
-        _stream.unget();
-        std::runtime_error err{"Unable to scan comment. Comment Should start with --"};
-        return err;
-    }
-
 }
 
 bool aux::scanner::components::CommentsScanner::canProcessNextToken() const {
-    CommonCharType c1 = _stream.get();
-    CommonCharType c2 = _stream.peek();
+    char c1 = _stream.get();
+    char c2 = _stream.peek();
+    _stream.unget();
 
     if (c1 == '-' && c2 == '-') {
         return true;
+    } else {
+        return false;
     }
 
-    _stream.unget();
-    return false;
 }

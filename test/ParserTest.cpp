@@ -1,13 +1,10 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
 
-#include "../src/util/Defines.h"
 
 #include <gtest/gtest.h>
 
 #include <string>
-#include <iostream>
-#include <vector>
 #include <list>
 
 #include "glog/logging.h"
@@ -15,8 +12,6 @@
 #include "../src/scanner/input_stream/PreprocessedFileInputStream.h"
 #include "../src/parser/Parser.h"
 
-#include <ogdf/basic/basic.h>
-#include <ogdf/basic/System.h>
 #include <ogdf/basic/GraphAttributes.h>
 #include <ogdf/fileformats/GraphIO.h>
 #include <ogdf/layered/MedianHeuristic.h>
@@ -35,18 +30,18 @@ using namespace aux::ir::ast;
 #define COLOR_LEMON {253, 255,0}
 #define COLOR_RED {255, 0, 0}
 
-struct ParserIndexedStringStream: input_stream::IIndexedStream<CommonCharType> {
+struct ParserIndexedStringStream: input_stream::IIndexedStream<char> {
 
-    explicit ParserIndexedStringStream(const CommonStringType &string) : _stream(
-            basic_stringstream<CommonCharType>{string}
+    explicit ParserIndexedStringStream(const std::string &string) : _stream(
+            basic_stringstream<char>{string}
     ) {}
 
-    CommonCharType get() override {
+    char get() override {
         if (!peeked) {
             ++col;
         }
         peeked = false;
-        auto curr = static_cast<CommonCharType>(_stream.get());
+        auto curr = static_cast<char>(_stream.get());
 
         if (curr == '\n') {
             currRow = "";
@@ -57,13 +52,13 @@ struct ParserIndexedStringStream: input_stream::IIndexedStream<CommonCharType> {
         return curr;
     }
 
-    CommonCharType peek() override {
+    char peek() override {
         if (!peeked) {
             ++col;
             peeked = true;
         }
 
-        return static_cast<CommonCharType>(_stream.peek());
+        return _stream.peek();
     }
 
     void unget() override {
@@ -89,7 +84,7 @@ struct ParserIndexedStringStream: input_stream::IIndexedStream<CommonCharType> {
     }
 
 private:
-    basic_stringstream<CommonCharType> _stream;
+    basic_stringstream<char> _stream;
     int col{-1};
     bool peeked{false};
     string currRow;
@@ -152,7 +147,13 @@ TEST(ExpressionParserTest, TestSomeShit) {
 //    string test = "a,b,c,d, ";
 //    string test = "A = A and B and C, 132";
 //    string test = "for and = 12,25+7 do end";
-    string test = "a.x.y[123+2](123+33, 9*21*b)";
+//    string test = "a.x.y[123+2](123+33, 9*21*b)";
+    string test = "if a-b>0 then\n"
+                  "    if x-y > 0 then\n"
+                  "         return 12\n"
+                  "     end\n"
+                  "else return 25 end ";
+    test.push_back('\n');
     ParserIndexedStringStream stream{test};
     std::shared_ptr<ModularScanner> scanner = make_shared<ModularScanner>(stream);
     Parser parser{scanner};

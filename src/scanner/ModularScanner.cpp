@@ -9,11 +9,15 @@
 #include "components/StringLiteralScanner.h"
 #include "components/IdentifierAndKeywordScanner.h"
 #include "components/NumericConstantsDFSAScanner.h"
-#include "../constants/LexicalAnalysisErrorMessages.h"
+#include "../exception/ErrorMessages.h"
 
 using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::input_stream;
+
+Span constructSpan(int row, int column) {
+    return Span{static_cast<uint16_t>(row), static_cast<uint16_t>(column)};
+}
 
 std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
     if (hasPeekToken) {
@@ -21,27 +25,23 @@ std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
         return peekToken;
     }
 
+    if (_stream.peek() == std::char_traits<char>::eof()) {
+        return std::make_shared<TokenEofOrUndefined>(constructSpan(_stream.getRow() + 1, _stream.getColumn() + 1));
+    }
+
     while (std::isspace(_stream.peek())) {
         _stream.get();
     }
 
-    auto startingChar = _stream.peek();
-    Span span{uint16_t(1 + _stream.getRow()), uint16_t(1 + _stream.getColumn())};
-
-    if (startingChar == std::char_traits<CommonCharType>::eof()) {
-        return std::make_shared<TokenEofOrUndefined>(span);
-    }
-
+    char startingChar = _stream.peek();
+    Span span = constructSpan(_stream.getRow() + 1, _stream.getColumn() + 1);
     std::vector<std::shared_ptr<std::runtime_error>> errors;
     for (const auto &component: _components) {
         if (component->canProcessNextToken()) {
-            if (_stream.peek() != startingChar) { // todo: how that happened?
-                _stream.unget();
-            }
             auto result = component->next();
             if (result) {
                 auto constructed = result.construct(span);
-                if (constructed->getType() == TokenType::COMMENT) {
+                if (!_returnComments && constructed->getType() == TokenType::COMMENT) {
                     return next();
                 }
                 return constructed;
@@ -51,14 +51,16 @@ std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
         }
     }
 
-    for (const auto& err: errors) {
-        LOG(ERROR) << MODULAR_SCANNER_ERROR(span.row, span.column, err->what());
+    for (const auto &err: errors) {
+        LOG(ERROR) << LA_ERROR_SCANNING_FILE(span.row, span.column, err->what());
     }
 
-    LOG(FATAL) << MODULAR_SCANNER_GENERAL_ERROR(startingChar, span.row, span.column);
+    LOG(FATAL) << LA_ERROR_SCANNING_TOKEN(startingChar, span.row, span.column);
 }
 
-ModularScanner::ModularScanner(IIndexedStream<CommonCharType> &stream) : _stream(stream) {
+ModularScanner::ModularScanner(IIndexedStream<char> &stream, bool returnComments)
+        : _stream(stream), _returnComments(returnComments) {
+
     _components.push_back(std::make_unique<components::CommentsScanner>(_stream));
     _components.push_back(std::make_unique<components::OperatorScanner>(_stream));
     _components.push_back(std::make_unique<components::IdentifierAndKeywordScanner>(_stream));

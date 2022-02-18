@@ -13,7 +13,7 @@ using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::components;
 
-CommonCharType escape(CommonCharType curr){
+char escape(char curr){
     switch (curr) {
         case 'a':
             return '\a';
@@ -38,13 +38,13 @@ CommonCharType escape(CommonCharType curr){
     }
 }
 
-CommonStringType makeCorrectEscapeSequence(CommonCharType curr){
+std::string makeCorrectEscapeSequence(char curr){
     return curr == '\'' || curr == '\"'
-           ? CommonStringType{curr}
-           : CommonStringType{escape(curr)};
+           ? std::string{curr}
+           : std::string{escape(curr)};
 }
 
-StringLiteralScanner::StringLiteralScanner(input_stream::IIndexedStream<CommonCharType> &stream) : _stream(stream) {
+StringLiteralScanner::StringLiteralScanner(input_stream::IIndexedStream<char> &stream) : _stream(stream) {
     _startingState = make_shared<BasicFsaState>(stream);
     auto S_FINISH = make_shared<BasicFsaFinalState>(stream);
 
@@ -74,7 +74,7 @@ ScanTokenResult StringLiteralScanner::next() const {
         return readWithLongBracket();
     } else {
         try {
-            CommonStringType result = _startingState->start();
+            std::string result = _startingState->start();
             return {result, makeTokenSharedPtr<TokenStringLiteral>};
         } catch (std::runtime_error &e) {
             return e;
@@ -83,14 +83,14 @@ ScanTokenResult StringLiteralScanner::next() const {
 }
 
 bool StringLiteralScanner::canProcessNextToken() const {
-    static unordered_set<CommonCharType> quotationChars{'\'', '\"'};
-    static unordered_set<CommonCharType> longBracketChars{'[', '='};
+    static unordered_set<char> quotationChars{'\'', '\"'};
+    static unordered_set<char> longBracketChars{'[', '='};
 
     if (quotationChars.contains(_stream.peek())) {
         return true;
     }
 
-    CommonCharType curr = _stream.get();
+    char curr = _stream.get();
     if (curr == '[' && longBracketChars.contains(_stream.peek())) {
         _stream.unget();
         return true;

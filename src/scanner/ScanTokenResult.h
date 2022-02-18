@@ -7,15 +7,22 @@
 
 #include <string>
 #include <memory>
-#include "../intermediate_representation/tokens/Token.h"
+#include "../intermediate_representation/Token.h"
 #include "../util/Defines.h"
 
-namespace aux::scanner{
+namespace aux::scanner {
+
+    template<typename IN1, typename IN2, typename OUT>
+    using BiFunction = OUT (*)(IN1, IN2);
 
     struct ScanTokenResult {
-        using ConstructingFunction = BiFunction<const CommonStringType&, const ir::tokens::Span&, std::shared_ptr<ir::tokens::Token>>;
+        using ConstructingFunction = BiFunction<
+                const std::string &,
+                const ir::tokens::Span &,
+                std::shared_ptr<ir::tokens::Token>
+        >;
 
-        ScanTokenResult(CommonStringType token, ConstructingFunction constructingFunction);
+        ScanTokenResult(std::string token, ConstructingFunction constructingFunction);
 
         IMPLICIT ScanTokenResult(std::runtime_error &runtimeError); // NOLINT(google-explicit-constructor)
 
@@ -25,21 +32,22 @@ namespace aux::scanner{
         std::shared_ptr<std::runtime_error> getScannerError() const;
 
         [[nodiscard]]
-        CommonStringType getToken() const;
+        std::string getToken() const;
 
         [[nodiscard]]
         std::shared_ptr<ir::tokens::Token> construct(const aux::ir::tokens::Span &span) const;
 
     private:
         const bool _result;
-        const CommonStringType _token;
-        const std::shared_ptr<std::runtime_error> _scannerError;
+        const std::string _token;
+        const std::shared_ptr<std::runtime_error> _scannerError; // todo: may do without shared pointers
         const ConstructingFunction _constructionFunction;
     };
 
 
     template<typename ResultType>
-    std::shared_ptr<aux::ir::tokens::Token> makeTokenSharedPtr(const CommonStringType &s, const aux::ir::tokens::Span &span){
+    std::shared_ptr<aux::ir::tokens::Token>
+    makeTokenSharedPtr(const std::string &s, const aux::ir::tokens::Span &span) {
         return make_shared<ResultType>(s, span);
     }
 

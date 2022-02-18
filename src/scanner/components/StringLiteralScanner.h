@@ -7,15 +7,14 @@
 
 #include "IScannerComponent.h"
 #include <istream>
-#include "../../fsa/State.h"
-#include "../../exception/PatternMatchingException.h"
+#include "../fsa/State.h"
 #include "../input_stream/IIndexedStream.h"
 
 namespace aux::scanner::components {
 
     struct StringLiteralScanner : IScannerComponent {
 
-        explicit StringLiteralScanner(input_stream::IIndexedStream<CommonCharType> &stream);
+        explicit StringLiteralScanner(input_stream::IIndexedStream<char> &stream);
 
         [[nodiscard]]
         ScanTokenResult next() const override;
@@ -24,8 +23,8 @@ namespace aux::scanner::components {
         bool canProcessNextToken() const override;
 
     private:
-        input_stream::IIndexedStream<CommonCharType> &_stream;
-        std::shared_ptr<fsa::State<CommonStringType>> _startingState;
+        input_stream::IIndexedStream<char> &_stream;
+        std::shared_ptr<fsa::State<std::string>> _startingState;
 
         [[nodiscard]]
         ScanTokenResult readWithLongBracket() const;

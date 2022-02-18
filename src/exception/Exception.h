@@ -7,13 +7,9 @@
 
 #include <vector>
 #include <stdexcept>
-#include "intermediate_representation/tokens/Token.h"
+#include "../intermediate_representation/Token.h"
 
 namespace aux::exception {
-
-    struct ParsingException;
-    class ParsingExceptionBuilder;
-
 
     enum class ParsedConstructionType {
         EXPRESSION,
@@ -23,6 +19,17 @@ namespace aux::exception {
     inline std::string operator*(const ParsedConstructionType &constructionType) {
         return constructionType == ParsedConstructionType::EXPRESSION ? "expression" : "statement";
     }
+
+    struct PatternMatchingException : std::runtime_error { // todo: refactor as it is in Parsing Exception
+        PatternMatchingException(const std::string &exception, char errorAt)
+                : std::runtime_error(exception + " at " + std::string(1, errorAt)) {}
+
+        PatternMatchingException(const char *exception, char errorAt)
+                : std::runtime_error(std::string(exception) + " at " + std::string(1, errorAt)) {}
+
+    };
+
+    class ParsingExceptionBuilder;
 
     struct ParsingException : std::logic_error {
 
@@ -54,6 +61,7 @@ namespace aux::exception {
             exceptionMessage += "but got " + actual + "\n";
             exceptionMessage += currentRow + "\n";
             // todo: add arrow pointing to the token beginning
+            // todo: move message into ErrorMessages.h
         }
 
         [[nodiscard]]

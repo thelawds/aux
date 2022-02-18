@@ -3,16 +3,18 @@
 //
 
 #include "PreprocessedFileInputStream.h"
+#include <iostream>
+#include <unordered_set>
 
-aux::scanner::input_stream::PreprocessedFileInputStream::PreprocessedFileInputStream(const std::string& inputFile)
-        : _stream(std::make_unique<std::basic_ifstream<CommonCharType>>(inputFile)) {}
+aux::scanner::input_stream::PreprocessedFileInputStream::PreprocessedFileInputStream(const std::string &inputFile)
+        : _stream(std::make_unique<std::basic_ifstream<char>>(inputFile, std::ios::in)), rows(1) {}
 
-CommonCharType aux::scanner::input_stream::PreprocessedFileInputStream::peek() {
-    return static_cast<CommonCharType>(_stream->peek());
+char aux::scanner::input_stream::PreprocessedFileInputStream::peek() {
+    return _stream->peek();
 }
 
-CommonCharType aux::scanner::input_stream::PreprocessedFileInputStream::get() {
-    auto curr = static_cast<CommonCharType>(_stream->get());
+char aux::scanner::input_stream::PreprocessedFileInputStream::get() {
+    auto curr = static_cast<char>(_stream->get());
 
     if (std::isdigit(_prevReturned) && curr == '.' && _stream->peek() == '.') {
         _stream->unget();
@@ -22,14 +24,23 @@ CommonCharType aux::scanner::input_stream::PreprocessedFileInputStream::get() {
         return curr;
     }
 
-    if (curr == '\n') {
-        currRow = "";
+    if (curr == '\n' || curr == std::char_traits<char>::eof()) {
+        rows.emplace_back("");
         rowSizes.push_back(col);
         col = 0;
         ++row;
     } else {
-        ++col;
-        currRow.push_back(curr);
+        if (isascii(curr)) {
+            ++col;
+        } else {
+            if (!incrementedOnPrevNonAsciiChar) {
+                col++;
+                incrementedOnPrevNonAsciiChar = true;
+            } else {
+                incrementedOnPrevNonAsciiChar = false;
+            }
+        }
+        rows[row].push_back(curr);
     }
 
     _prevReturned = curr;
@@ -52,7 +63,20 @@ void aux::scanner::input_stream::PreprocessedFileInputStream::unget() {
         col = rowSizes[row - 1];
         --row;
     } else {
-        --col;
+        bool needRollback = isascii(_stream->peek());
+        if (!needRollback) {
+            if (incrementedOnPrevNonAsciiChar) {
+                needRollback = true;
+                incrementedOnPrevNonAsciiChar = false;
+            } else {
+                incrementedOnPrevNonAsciiChar = true;
+            }
+        }
+
+        if (needRollback) {
+            --col;
+            rows[row].pop_back();
+        }
     }
 }
 
@@ -65,10 +89,7 @@ uint16_t aux::scanner::input_stream::PreprocessedFileInputStream::getColumn() {
 }
 
 std::string aux::scanner::input_stream::PreprocessedFileInputStream::skipToTheEndOfCurrRow() {
-    while (peek() != '\n') {
-        get();
-    }
-    auto result = currRow;
-    get();
-    return result;
+    static std::unordered_set<char> stop{'\n', std::char_traits<char>::eof()};
+    while (!stop.contains(get())) {}
+    return rows[row - 1];
 }

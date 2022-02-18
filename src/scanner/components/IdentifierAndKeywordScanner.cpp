@@ -13,15 +13,17 @@ using namespace aux::ir::tokens;
 using namespace aux::scanner::characters;
 using namespace aux::scanner::components;
 
-IdentifierAndKeywordScanner::IdentifierAndKeywordScanner(input_stream::IIndexedStream<CommonCharType> &stream) : _stream(stream) {
+IdentifierAndKeywordScanner::IdentifierAndKeywordScanner(input_stream::IIndexedStream<char> &stream) : _stream(stream) {
     _startingState = make_shared<BasicFsaState>(stream);
-    auto S_Finish = make_shared<BasicFsaFinalStateReturningLastCharacter>(stream);
+    auto S_FinishNonEOF = make_shared<BasicFsaFinalStateReturningLastCharacter>(stream);
+    auto S_FinishEOF = make_shared<BasicFsaFinalState>(stream);
 
     DeclareIntermediateState(S_IK);
 
     _startingState->addTransition(identifier(ALPHABETIC_UNDERSCORE), S_IK);
 
-    S_IK->addTransition(delimiter(ANY), S_Finish, SKIP_SYMBOL);
+    S_IK->addTransition(delimiter(END_OF_FILE), S_FinishEOF, SKIP_SYMBOL);
+    S_IK->addTransition(delimiter(NON_EOF), S_FinishNonEOF, SKIP_SYMBOL);
     S_IK->addTransition(identifier(ANY), S_IK);
 }
 
@@ -39,7 +41,7 @@ ScanTokenResult IdentifierAndKeywordScanner::next() const {
 }
 
 bool IdentifierAndKeywordScanner::canProcessNextToken() const {
-    CommonCharType nextChar = _stream.peek();
+    char nextChar = _stream.peek();
     if (nextChar >>= IdentifierKeywordCharType::ALPHABETIC_UNDERSCORE) {
         return true;
     } else {

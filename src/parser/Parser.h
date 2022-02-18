@@ -9,7 +9,7 @@
 #include <unordered_set>
 
 #include "../scanner/IScanner.h"
-#include "../intermediate_representation/ast/Tree.h"
+#include "../intermediate_representation/Tree.h"
 
 namespace aux::parser {
 
