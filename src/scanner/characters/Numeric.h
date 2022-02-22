@@ -7,7 +7,6 @@
 
 #include <string>
 #include "Delimiters.h"
-#include "../../util/Defines.h"
 
 namespace aux::scanner::characters {
 
@@ -25,7 +24,7 @@ namespace aux::scanner::characters {
         ANY
     };
 
-    inline bool operator>>=(const CommonCharType &c, NumericCharType type) {
+    inline bool operator>>=(const char &c, NumericCharType type) {
         switch (type) {
             case NumericCharType::ZERO:
                 return c == '0';
@@ -57,7 +56,7 @@ namespace aux::scanner::characters {
     }
 
     template<NumericCharType type>
-    bool satisfies(CommonCharType c) {
+    bool satisfies(char c) {
         return c >>= type;
     }
 

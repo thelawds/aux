@@ -3,7 +3,7 @@ Aux is a simple lua compiler to LLVM
 
 Project Status:
 - [X] Lexical analysis
-- [ ] Syntax Analysis
+- [X] Syntax Analysis
 - [ ] Semantic Analysis
 - [ ] Basic Optimizations
 - [ ] Code Generation
@@ -15,3 +15,4 @@ Project Status:
 ## Requirenments:
 - [GLog](https://github.com/google/glog)
 - [GFlags](https://github.com/gflags/gflags)
+- [OGDF](https://github.com/ogdf/ogdf)

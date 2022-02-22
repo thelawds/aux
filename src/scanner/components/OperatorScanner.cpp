@@ -3,14 +3,13 @@
 //
 
 #include "OperatorScanner.h"
-#include "../../exception/PatternMatchingException.h"
+#include "../../exception/Exception.h"
 
 using namespace std;
 using namespace aux::scanner;
 using namespace aux::ir::tokens;
+using namespace aux::exception;
 using namespace aux::scanner::components;
-
-#define EOF char_traits<CommonCharType>::eof()
 
 ScanTokenResult OperatorScanner::next() const {
     try {
@@ -21,10 +20,10 @@ ScanTokenResult OperatorScanner::next() const {
     }
 }
 
-CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
-    CommonCharType curr = 0;
+std::string OperatorScanner::tryScanOperatorOrDelimiter() const {
+    char curr = 0;
 
-    if (_stream.peek() != EOF) {
+    if (_stream.peek() != char_traits<char>::eof()) {
         curr = _stream.get();
 
         switch (curr) {
@@ -48,70 +47,69 @@ CommonStringType OperatorScanner::tryScanOperatorOrDelimiter() const {
             case '/':
                 if (_stream.peek() == '/') {
                     _stream.get();
-                    return toCommonStringType("//");
+                    return ("//");
                 } else {
-                    return toCommonStringType("/");
+                    return ("/");
                 }
             case '~':
                 if (_stream.peek() == '=') {
                     _stream.get();
-                    return toCommonStringType("~=");
+                    return ("~=");
                 } else {
-                    return toCommonStringType("~");
+                    return ("~");
                 }
             case '<':
                 if (_stream.peek() == '<') {
                     _stream.get();
-                    return toCommonStringType("<<");
+                    return ("<<");
                 } else if (_stream.peek() == '=') {
                     _stream.get();
-                    return toCommonStringType("<=");
+                    return ("<=");
                 } else {
-                    return toCommonStringType("=");
+                    return ("<");
                 }
             case '>':
                 if (_stream.peek() == '>') {
                     _stream.get();
-                    return toCommonStringType(">>");
+                    return (">>");
                 } else if (_stream.peek() == '=') {
                     _stream.get();
-                    return toCommonStringType(">=");
+                    return (">=");
                 } else {
-                    return toCommonStringType(">");
+                    return (">");
                 }
             case '=':
                 if (_stream.peek() == '=') {
                     _stream.get();
-                    return toCommonStringType("==");
+                    return ("==");
                 } else {
-                    return toCommonStringType("=");
+                    return ("=");
                 }
             case ':':
                 if (_stream.peek() == ':') {
                     _stream.get();
-                    return toCommonStringType("::");
+                    return ("::");
                 } else {
-                    return toCommonStringType(":");
+                    return (":");
                 }
             case '.':
                 if (_stream.peek() == '.') {
                     _stream.get();
                     if (_stream.peek() == '.') {
                         _stream.get();
-                        return toCommonStringType("...");
+                        return ("...");
                     } else {
-                        return toCommonStringType("..");
+                        return ("..");
                     }
                 } else {
-                    return toCommonStringType(".");
+                    return (".");
                 }
             default:
                 _stream.unget();
-                throw fsa::PatternMatchingException("Pattern matching failed for operator scanning", curr);
+                throw PatternMatchingException("Pattern matching failed for operator scanning", curr);
         }
 
     }
-
 
 }
 

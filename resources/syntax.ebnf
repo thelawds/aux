@@ -1,0 +1,68 @@
+
+# camelCase: 		Non-terminal
+# PascalCase:		Terminal
+# CAPS_UNDERSCORE:	Keyword
+
+# Compilation units:
+
+chunk ::= block															# done
+block ::= {stat} [retstat]												# done
+
+# Top Level Statements:
+
+stat ::= ';' | BREAK | GOTO Identifier | DO block END | whileLoop | ifStatement | forLoop		# done
+	   | LOCAL (functionDefinition | attIdentifierlist ['=' explist]) 		    				# done, Local function definition should have as a name a pure Identifier				
+	   | label | functionDefinition | assignmentOrFuncCall										# done
+
+assignmentOrFuncCall ::= prefixexp {',' prefixexp} ['=' explist]				# done, if prefixExp is the only one in the tree, then try check if it is functionCall, otherwise treat as an assignment
+ifStatement ::= IF exp THEN block {ELSEIF exp THEN block} [ELSE block] END		# done
+whileLoop ::= WHILE exp DO block END | REPEAT block UNTIL exp					# done
+functionDefinition ::= FUNCTION funcIdentifier funcbody							# done, functionDefinition ::= LOCAL FUNCTION Identifier funcbody | FUNCTION funcIdentifier funcbody
+forLoop ::= FOR Identifierlist ('=' | In) explist DO block END					# done, forLoop ::= FOR Identifier '=' exp ',' exp [',' exp] DO block END | FOR Identifierlist IN explist DO block END
+
+retstat ::= RETURN [explist] [';']												# done
+
+# Concrete Statements:
+
+assignment ::= varlist '=' explist												# done
+funcIdentifier ::= Identifier {'.' Identifier} [':' Identifier]					# done
+funcbody ::= '(' [parlist] ')' block END										# done
+label ::= '::' Identifier '::'													# done
+attIdentifierlist ::=  Identifier attrib {',' Identifier attrib}				# done
+parlist ::= Identifierlist [',' '...'] | '...'									# done
+Identifierlist ::= Identifier {',' Identifier}									# done
+attrib ::= ['<' Identifier '>']													# done
+
+# Expressions:
+
+exp ::= '...' | FUNCTION funcbody | tableconstructor | arlExp					# done
+
+prefixexp ::= (Identifier | '(' exp ')') {(peSuffix | funcCallSuffix)}			# done, Changed from: prefixexp ::= var | functioncall | '(' exp ')'
+peSuffix ::= '[' exp ']' | '.' Identifier 										# done, added
+tableconstructor ::= '{' [fieldlist] '}'										# done
+
+# Arithmetic-Logical Expressions:
+
+arlExpression 			::= logicalAndTerm {OR logicalOrTerm}										# done, Left-Associative
+logicalAndTerm 			::= relationalTerm {AND relationalTerm}										# done, Left-Associative
+relationalTerm 			::= bitwiseOrTerm {('<' | '>' | '<=' | '>=' | '~=' | '==') bitwiseOrTerm}	# done, Left-Associative
+bitwiseOrTerm 			::= bitwiseXorTerm {'|' bitwiseXorTerm}										# done, Left-Associative
+bitwiseXorTerm 			::= bitwiseAndTerm {'~' bitwiseAndTerm}										# done, Left-Associative
+bitwiseAndTerm 			::= shiftedTerm {'&' shiftedTerm}											# done, Left-Associative
+shiftedTerm 			::= stringConcatenationTerm {('<<' | '>>') stringConcatenationTerm}			# done, Left-Associative
+stringConcatenationTerm ::= summationTerm {'..' summationTerm}										# done, Left-Associative
+summationTerm           ::= productTerm {('+' | '-') productTerm}									# done, Left-Associative
+productTerm  			::= unaryTerm {('*' | '/' | '//' | '%') unaryTerm}							# done, Left-Associative
+unaryTerm    			::= [(NOT | '#' | '-' | '~')] exponentTerm									# done
+exponentTerm      		::= term ['^' exponentTerm]													# done, Right-Associative
+term 					::= NIL | FALSE | TRUE | Numeral | LiteralString | prefixexp 				# done
+
+# Other Non-Terminals:
+args ::= '(' [explist] ')' | tableconstructor | LiteralString 					# done
+varlist::= var {',' var}														# done
+explist ::= exp {',' exp}														# done
+fieldlist ::= field {(',' | ';') field} [(',' | ';')]							# done
+field ::= '[' exp ']' '=' exp | Identifier '=' exp | exp						# done
+var ::= Identifier {peSuffix} | '(' exp ')' {peSuffix}							# done, Changed from: var ::=  Identifier | prefixexp '[' exp ']' | prefixexp '.' Identifier
+funccall ::= prefixexp funcCallSuffix											# done, functioncall ::= prefixexp args | prefixexp ':' Identifier args 
+funcCallSuffix ::= [':' Identifier] args 										# done, added

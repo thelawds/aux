@@ -15,14 +15,21 @@
 namespace aux::scanner {
 
     struct ModularScanner : IScanner {
-        explicit ModularScanner(input_stream::IIndexedStream<CommonCharType> &stream);
+        explicit ModularScanner(input_stream::IIndexedStream<char> &stream, bool returnComments = false);
 
         [[nodiscard]]
         std::shared_ptr<ir::tokens::Token> next() const override;
 
+        [[nodiscard]]
+        std::shared_ptr<ir::tokens::Token> peek() const override;
+
     private:
+        const bool _returnComments;
         std::vector<std::unique_ptr<components::IScannerComponent>> _components {};
-        input_stream::IIndexedStream<CommonCharType> &_stream;
+        input_stream::IIndexedStream<char> &_stream;
+
+        mutable std::shared_ptr<ir::tokens::Token> peekToken {nullptr};
+        mutable bool hasPeekToken {false};
     };
 }
 

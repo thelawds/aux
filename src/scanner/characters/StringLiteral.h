@@ -17,7 +17,7 @@ namespace aux::scanner::characters {
         ANY
     };
 
-    inline bool operator>>=(const CommonCharType &c, StringLiteralCharType type){
+    inline bool operator>>=(const char &c, StringLiteralCharType type){
         switch (type) {
             case StringLiteralCharType::SINGLE_QUOTE:
                 return c == '\'';
@@ -26,7 +26,7 @@ namespace aux::scanner::characters {
             case StringLiteralCharType::BACKSLASH:
                 return c == '\\';
             case StringLiteralCharType::NON_EOF:
-                return c != std::char_traits<CommonCharType>::eof();
+                return c != std::char_traits<char>::eof();
             case StringLiteralCharType::ANY:
                 return (c >>= StringLiteralCharType::SINGLE_QUOTE)
                        || (c >>= StringLiteralCharType::DOUBLE_QUOTE)
@@ -39,7 +39,7 @@ namespace aux::scanner::characters {
 
 
     template<StringLiteralCharType type>
-    bool satisfies(CommonCharType c) {
+    bool satisfies(char c) {
         return c >>= type;
     }
 

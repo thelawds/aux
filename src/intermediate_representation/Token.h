@@ -10,8 +10,7 @@
 #include <unordered_map>
 #include <memory>
 #include <ostream>
-#include "../../util/Defines.h"
-
+//todo: refactor tokens
 namespace aux::ir::tokens {
 
     enum class TokenType {
@@ -23,7 +22,7 @@ namespace aux::ir::tokens {
         STRING_LITERAL,
         OPERATOR,
         COMMENT,
-        UNDEFINED
+        EOF_OR_UNDEFINED
     };
 
     inline std::string &operator*(const TokenType &type) {
@@ -36,7 +35,7 @@ namespace aux::ir::tokens {
                 {TokenType::STRING_LITERAL, "String Literal"},
                 {TokenType::OPERATOR, "Operator"},
                 {TokenType::COMMENT, "Comment"},
-                {TokenType::UNDEFINED, "Undefined"}
+                {TokenType::EOF_OR_UNDEFINED, "Undefined"}
         };
 
         return keywords.at(type);
@@ -123,13 +122,18 @@ namespace aux::ir::tokens {
         return operators.at(op);
     }
 
-    bool isKeyword(const CommonStringType &str);
+    bool isKeyword(const std::string &str);
 
     struct Span {
         const uint16_t row;
         const uint16_t column;
 
-        Span(const uint16_t row, const uint16_t column) : row(row), column(column) {}
+        Span(uint16_t row, uint16_t column) : row(row), column(column) {}
+
+        friend std::ostream &operator<<(std::ostream &os, const Span &span) {
+            os << "(" << span.row << ", " << span.column << ")";
+            return os;
+        }
     };
 
     struct Token {
@@ -141,62 +145,78 @@ namespace aux::ir::tokens {
         [[nodiscard]]
         virtual TokenType getType() const = 0;
 
+        virtual std::string getRawValue() const = 0;
+
     private:
         const Span _span;
 
     };
 
-    struct TokenUndefined : Token {
-        explicit TokenUndefined(const Span &span);
+    struct TokenEofOrUndefined : Token {
+        explicit TokenEofOrUndefined(const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
     };
 
     struct TokenComment : Token {
 
-        TokenComment(CommonStringType value, const Span& span);
+        TokenComment(std::string value, const Span& span);
 
         [[nodiscard]]
         TokenType getType() const override;
 
         [[nodiscard]]
-        const CommonStringType &getValue() const;
+        const std::string &getValue() const;
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
 
     private:
-        CommonStringType _value;
+        std::string _value;
     };
 
     struct TokenIdentifier : Token {
-        TokenIdentifier(CommonStringType value, const Span &span);
+        TokenIdentifier(std::string value, const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;
 
         [[nodiscard]]
-        const CommonStringType &getValue() const;
+        const std::string &getValue() const;
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
 
     private:
-        const CommonStringType _value;
+        const std::string _value;
     };
 
     struct TokenKeyword : Token {
-        TokenKeyword(const CommonStringType &value, const Span &span);
+        TokenKeyword(const std::string &value, const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;
 
         const Keyword &getKeyword();
 
-        friend std::ostream &operator<<(std::ostream &os, const TokenKeyword &keyword);
+        [[nodiscard]]
+        std::string getRawValue() const override;
 
     private:
         const Keyword _keyword;
     };
 
-    template<typename T, Function<const CommonStringType &, T> converter, TokenType TokType>
+
+    template<typename IN, typename OUT>
+    using Function = OUT (*)(IN);
+
+    template<typename T, Function<const std::string &, T> converter, TokenType TokType>
     struct TokenNumeric : Token {
-        TokenNumeric(CommonStringType value, const Span &span)
+        TokenNumeric(std::string value, const Span &span)
                 : Token(span), _string_value(value), _value(converter(value)) {}
 
         [[nodiscard]]
@@ -209,31 +229,36 @@ namespace aux::ir::tokens {
         };
 
         [[nodiscard]]
-        inline CommonStringType getRawValue() const {
+        inline std::string getRawValue() const override {
             return _string_value;
         }
 
     private:
         T _value;
-        CommonStringType _string_value;
+        std::string _string_value;
     };
 
 
     struct TokenStringLiteral : Token {
-        TokenStringLiteral(CommonStringType value, const Span &span);
+        TokenStringLiteral(std::string value, const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;
 
         [[nodiscard]]
-        const CommonStringType &getValue() const;
+        const std::string &getValue() const;
+
+        [[nodiscard]]
+        std::string getRawValue() const override;
 
     private:
-        CommonStringType _value;
+        std::string _value;
     };
 
     struct TokenOperator : Token {
-        explicit TokenOperator(const CommonStringType &value, const Span &span);
+        TokenOperator(const std::string &value, const Span &span);
+
+        TokenOperator(const Operator &value, const Span &span);
 
         [[nodiscard]]
         TokenType getType() const override;
@@ -241,16 +266,19 @@ namespace aux::ir::tokens {
         [[nodiscard]]
         const Operator &getOperator() const;
 
+        [[nodiscard]]
+        std::string getRawValue() const override;
+
     private:
         Operator _value;
     };
 
     template<uint16_t base>
-    inline uint64_t toInteger(const CommonStringType &string) {
+    inline uint64_t toInteger(const std::string &string) {
         return std::stoll(string, nullptr, base);
     }
 
-    inline long double toLongDouble(const CommonStringType &string) {
+    inline long double toLongDouble(const std::string &string) {
         return std::stold(string);
     }
 

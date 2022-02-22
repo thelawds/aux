@@ -8,15 +8,21 @@
 #include <istream>
 #include <map>
 #include <memory>
-#include "../exception/PatternMatchingException.h"
-#include "../scanner/input_stream/IIndexedStream.h"
-#include "../util/Defines.h"
+#include <functional>
+#include "../../exception/Exception.h"
+#include "../input_stream/IIndexedStream.h"
 
 namespace aux::fsa {
 
+    template<typename IN, typename OUT>
+    using Function = OUT (*)(IN);
+
+    template<typename InputType>
+    using Predicate = Function<InputType, bool>;
+
     template<
             typename ResultType, // ResultType += ResultType; ResultType += InputPredicate; ResultType()
-            typename CharT = CommonCharType,
+            typename CharT = char,
             typename Traits = std::char_traits<CharT>
     >
     struct State {
@@ -28,7 +34,8 @@ namespace aux::fsa {
                 std::map<Predicate<CharT>, std::shared_ptr<ConformingStateType>> &transitionTable
         ) : _stream(stream), _transitionTable(transitionTable) {}
 
-        explicit State(scanner::input_stream::IIndexedStream<CharT, Traits> &stream) : _stream(stream), _transitionTable({}) {}
+        explicit State(scanner::input_stream::IIndexedStream<CharT, Traits> &stream)
+                : _stream(stream), _transitionTable({}) {}
 
         inline bool addTransition(Predicate<CharT> input, std::shared_ptr<ConformingStateType> state) {
             if (_transitionTable.contains(input)) {
@@ -82,10 +89,13 @@ namespace aux::fsa {
             }
 
             unGet();
-            throw PatternMatchingException("Pattern matching failed", curr);
+            throw exception::PatternMatchingException("Pattern matching failed", curr);
         }
 
     protected:
+        // todo: should the pointer to the next state be weak_ptr instead of shared_ptr?
+        // todo: maybe use bare pointers and RAII
+        // TODO: there are cyclic dependencies are here
         std::map<Predicate<CharT>, std::shared_ptr<ConformingStateType>> _transitionTable;
         std::map<Predicate<CharT>, Function<CharT, ResultType>> _mixinTable;
         scanner::input_stream::IIndexedStream<CharT, Traits> &_stream;
@@ -109,29 +119,28 @@ namespace aux::fsa {
     };
 
     template<
+            bool NeedStackRollBack,
             typename ResultType, // ResultType += ResultType; ResultType += InputPredicate
-            bool MakeUnget,
-            typename CharT = CommonCharType ,
+            typename CharT = char,
             typename Traits = std::char_traits<CharT>
-
     >
     struct FinalState : State<ResultType, CharT, Traits> {
         explicit FinalState(scanner::input_stream::IIndexedStream<CharT, Traits> &stream)
                 : State<ResultType, CharT, Traits>(stream) {}
 
         ResultType start() override {
-            if (MakeUnget) {
+            if (NeedStackRollBack) {
                 this->unGet();
             }
             return ResultType{};
         }
     };
 
-    using BasicFsaState = State<CommonStringType>;
-    using BasicFsaFinalStateReturningLastCharacter = FinalState<CommonStringType, true>;
-    using BasicFsaFinalState = FinalState<CommonStringType, false>;
+    using BasicFsaState = State<std::string>;
+    using BasicFsaFinalStateReturningLastCharacter = FinalState<true, std::string>;
+    using BasicFsaFinalState = FinalState<false, std::string>;
 
-    inline CommonStringType skipSymbol(CommonCharType c){
+    inline std::string skipSymbol(char c){
         return {};
     }
 }

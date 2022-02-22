@@ -7,14 +7,13 @@
 
 #include "IScannerComponent.h"
 #include "../input_stream/IIndexedStream.h"
-#include "../../util/Defines.h"
 #include <istream>
 
 namespace aux::scanner::components {
 
     struct OperatorScanner : IScannerComponent {
 
-        explicit OperatorScanner(input_stream::IIndexedStream<CommonCharType> &stream) : _stream(stream) {}
+        explicit OperatorScanner(input_stream::IIndexedStream<char> &stream) : _stream(stream) {}
 
         [[nodiscard]]
         ScanTokenResult next() const override;
@@ -23,10 +22,10 @@ namespace aux::scanner::components {
         bool canProcessNextToken() const override;
 
     private:
-        input_stream::IIndexedStream<CommonCharType> &_stream;
+        input_stream::IIndexedStream<char> &_stream;
 
         [[nodiscard]]
-        CommonStringType tryScanOperatorOrDelimiter() const;
+        std::string tryScanOperatorOrDelimiter() const;
     };
 
 }

@@ -17,17 +17,17 @@ using namespace aux::scanner::components;
 
 Span span{0, 0};
 
-struct IndexedStringStream: input_stream::IIndexedStream<CommonCharType> {
+struct IndexedStringStream: input_stream::IIndexedStream<char> {
 
-    explicit IndexedStringStream(const CommonStringType & string) : _stream(basic_stringstream<CommonCharType>{string}) {}
+    explicit IndexedStringStream(const std::string & string) : _stream(basic_stringstream<char>{string}) {}
 
-    CommonCharType get() override {
-        auto curr = static_cast<CommonCharType>(_stream.get());
+    char get() override {
+        auto curr = static_cast<char>(_stream.get());
         return curr;
     }
 
-    CommonCharType peek() override {
-        return static_cast<CommonCharType>(_stream.peek());
+    char peek() override {
+        return static_cast<char>(_stream.peek());
     }
 
     void unget() override {
@@ -42,8 +42,12 @@ struct IndexedStringStream: input_stream::IIndexedStream<CommonCharType> {
         return 0;
     }
 
+    string skipToTheEndOfCurrRow() override {
+        return "";
+    }
+
 private:
-    basic_stringstream<CommonCharType> _stream;
+    basic_stringstream<char> _stream;
 };
 
 TEST(ScannerComponentsTest, NumericConstantsScannerPositiveTest) {
@@ -58,7 +62,7 @@ TEST(ScannerComponentsTest, NumericConstantsScannerPositiveTest) {
 
     for (string input: inputs) {
         input += delimiters[random() % delimiters.size()];
-        IndexedStringStream stream(toCommonStringType(input));
+        IndexedStringStream stream(input);
         NumericConstantsDFSAScanner scanner{stream};
 
         auto result = scanner.next();
@@ -77,7 +81,7 @@ TEST(ScannerComponentsTest, NumericConstantsScannerNegativeTest) {
     };
 
     for (const auto &str: inputs) {
-        IndexedStringStream stream{toCommonStringType(str)};
+        IndexedStringStream stream{str};
         NumericConstantsDFSAScanner scanner{stream};
         auto result = scanner.next();
         EXPECT_FALSE(result);
@@ -95,7 +99,7 @@ TEST(ScannerComponentsTest, StringLiteralScannerPositiveTest) {
     };
 
     for (const string &str: stringLiterals) {
-        IndexedStringStream stream{toCommonStringType(str)};
+        IndexedStringStream stream{str};
         StringLiteralScanner scanner{stream};
         auto result = scanner.next();
         auto resultToken = dynamic_pointer_cast<TokenStringLiteral>(result.construct(span));
@@ -116,7 +120,7 @@ TEST(ScannerComponentsTest, OperatorScannerTest) {
     };
 
     for (const string &str: operators) {
-        IndexedStringStream stream{toCommonStringType(str)};
+        IndexedStringStream stream{str};
         OperatorScanner scanner{stream};
         auto result = scanner.next();
         auto resultTokenType = dynamic_pointer_cast<TokenOperator>(result.construct(span))->getOperator();
@@ -139,7 +143,7 @@ TEST(ScannerComponentsTest, IdentifierAndKeywordScannerTest) {
     };
 
     for (const string &str: keywords) {
-        IndexedStringStream stream{toCommonStringType(str)};
+        IndexedStringStream stream{str};
         IdentifierAndKeywordScanner scanner{stream};
         auto result = scanner.next();
         auto resultTokenType = dynamic_pointer_cast<TokenKeyword>(result.construct(span))->getKeyword();
@@ -150,7 +154,7 @@ TEST(ScannerComponentsTest, IdentifierAndKeywordScannerTest) {
     }
 
     for (const string &str: identifiers) {
-        IndexedStringStream stream{toCommonStringType(str)};
+        IndexedStringStream stream{str};
         IdentifierAndKeywordScanner scanner{stream};
         auto result = scanner.next();
         auto resultToken = dynamic_pointer_cast<TokenIdentifier>(result.construct(span));
@@ -165,11 +169,11 @@ TEST(ScannerComponentsTest, CommentScannerTest){
     string testComment = "-- My first Comment \n"
                          "a = 12";
 
-    IndexedStringStream stream(toCommonStringType(testComment));
+    IndexedStringStream stream(testComment);
     CommentsScanner scanner(stream);
 
     auto result = scanner.next();
     EXPECT_TRUE(result);
     auto resultToken = dynamic_pointer_cast<TokenComment>(result.construct(span));
-    EXPECT_EQ(resultToken->getValue(), toCommonStringType(" My first Comment "));
+    EXPECT_EQ(resultToken->getValue(), "-- My first Comment ");
 }

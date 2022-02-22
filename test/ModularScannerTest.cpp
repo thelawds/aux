@@ -2,7 +2,6 @@
 // Created by miserable on 31.01.2022.
 //
 
-#include "../src/util/Defines.h"
 
 #include <gtest/gtest.h>
 
@@ -19,6 +18,14 @@ using namespace aux::scanner;
 using namespace aux::ir::tokens;
 using namespace aux::scanner::components;
 using namespace aux::scanner::input_stream;
+
+TEST(ModularScannerTest, TestPreprocessedFIS){
+    PreprocessedFileInputStream fis{"../test/resources/test_cases/ScannerTest.lua"};
+    while (fis.peek() != char_traits<char>::eof()) {
+        LOG(INFO) << fis.skipToTheEndOfCurrRow();
+    }
+}
+
 
 TEST(ModularScannerTest, TestPositiveInputCases){
     PreprocessedFileInputStream fis{"../test/resources/test_cases/ScannerTest.lua"};
@@ -81,12 +88,12 @@ TEST(ModularScannerTest, TestPositiveInputCases){
                         << " at (" << token->getSpan().row << ", " << token->getSpan().column << ")"
                         << endl;
                 break;
-            case TokenType::UNDEFINED:
+            case TokenType::EOF_OR_UNDEFINED:
                 LOG(INFO)
                         << "Undefined"
                         << " at (" << token->getSpan().row << ", " << token->getSpan().column << ")"
                         << endl;
-                break;
+                return;
         }
 
     }
