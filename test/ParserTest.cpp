@@ -163,7 +163,7 @@ TEST(ExpressionParserTest, TestSomeShit) {
 }
 
 TEST(ParserTest, ForFile){
-    PreprocessedFileInputStream fis{"../test/resources/test_cases/BigLuaProgram.lua"};
+    PreprocessedFileInputStream fis{"../test/resources/test_cases/Factorial.lua"};
     std::shared_ptr<ModularScanner> scanner = make_shared<ModularScanner>(fis);
     Parser fromFileParser{scanner};
 

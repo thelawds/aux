@@ -44,7 +44,6 @@ namespace aux::scanner {
         const ConstructingFunction _constructionFunction;
     };
 
-
     template<typename ResultType>
     std::shared_ptr<aux::ir::tokens::Token>
     makeTokenSharedPtr(const std::string &s, const aux::ir::tokens::Span &span) {

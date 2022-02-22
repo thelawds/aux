@@ -95,7 +95,7 @@ namespace aux::fsa {
     protected:
         // todo: should the pointer to the next state be weak_ptr instead of shared_ptr?
         // todo: maybe use bare pointers and RAII
-        // Seems there are cyclic dependencies are here
+        // TODO: there are cyclic dependencies are here
         std::map<Predicate<CharT>, std::shared_ptr<ConformingStateType>> _transitionTable;
         std::map<Predicate<CharT>, Function<CharT, ResultType>> _mixinTable;
         scanner::input_stream::IIndexedStream<CharT, Traits> &_stream;
