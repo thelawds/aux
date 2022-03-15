@@ -36,9 +36,10 @@ add_executable(
         src/scanner/ModularScanner.cpp
         src/parser/Parser.cpp
         src/parser/Parser.h
-        src/intermediate_representation/Tree.h
         src/exception/Exception.h
-)
+        src/intermediate_representation/tree/Tree.h
+        src/semantics/Visitor.h
+        src/semantics/ConstantExpressionEvaluationVisitor.cpp src/semantics/ConstantExpressionEvaluationVisitor.h)
 
 add_executable(
         tests
@@ -57,7 +58,8 @@ add_executable(
         test/ParserTest.cpp
         src/parser/Parser.cpp
         src/parser/Parser.h
-        src/intermediate_representation/Tree.h
+        src/intermediate_representation/tree/Tree.h test/TreePrintingVisitor.cpp test/TreePrintingVisitor.h
+        src/semantics/ConstantExpressionEvaluationVisitor.cpp src/semantics/ConstantExpressionEvaluationVisitor.h
 )
 
 # Setting Up Frameworks

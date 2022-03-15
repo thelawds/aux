@@ -5,8 +5,12 @@
 ---
 
 -- defines a factorial function
+
 function fact (n)
+    print "Test String"
     if n == 0 then
+        return 1
+    elseif n == 1 then
         return 1
     else
         return n * fact(n-1)

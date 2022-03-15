@@ -25,12 +25,13 @@ std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
         return peekToken;
     }
 
-    if (_stream.peek() == std::char_traits<char>::eof()) {
-        return std::make_shared<TokenEofOrUndefined>(constructSpan(_stream.getRow() + 1, _stream.getColumn() + 1));
-    }
 
     while (std::isspace(_stream.peek())) {
         _stream.get();
+    }
+
+    if (_stream.peek() == std::char_traits<char>::eof()) {
+        return std::make_shared<TokenEofOrUndefined>(constructSpan(_stream.getRow() + 1, _stream.getColumn() + 1));
     }
 
     char startingChar = _stream.peek();
