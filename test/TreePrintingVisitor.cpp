@@ -183,7 +183,7 @@ void TreePrintingVisitor::visitStructAccessSuffixTree(StructAccessSuffixTree *tr
 
 void TreePrintingVisitor::visitVariableTree(VariableTree *tree) {
     newNode("Variable:");
-    tree->expression->accept(this);
+    tree->identifier->accept(this);
     finishCurrentNodeAsLeftSubtree("Expression");
 
     int finishEls = 0;

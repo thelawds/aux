@@ -3,6 +3,8 @@
 
 #include "scanner/ModularScanner.h"
 #include "scanner/input_stream/PreprocessedFileInputStream.h"
+#include "parser/Parser.h"
+#include "semantics/CodeGenerationVisitor.h"
 
 DEFINE_string(src, "", "Source file to be compiled");
 
@@ -18,18 +20,12 @@ int main(int argc, char** argv) {
         LOG(FATAL) << "Input file is not provided. See usage:";
     }
 
-    aux::scanner::input_stream::PreprocessedFileInputStream fis(FLAGS_src);
-    aux::scanner::ModularScanner scanner(fis);
-
-    while (true) {
-        auto currToken = scanner.next();
-        if (currToken) {
-            LOG(INFO) << "Token of type " << *currToken->getType()
-                      << " at (" << currToken->getSpan().row << " : " << currToken->getSpan().column << ")";
-        } else {
-            break;
-        }
-    }
+    aux::scanner::input_stream::PreprocessedFileInputStream fileInputStream(FLAGS_src);
+    auto scanner = std::make_shared<aux::scanner::ModularScanner>(fileInputStream);
+    auto parser = std::make_shared<aux::parser::Parser>(scanner);
+    aux::ir::semantics::CodeGenerationVisitor codeGenerationVisitor;
+    auto tree = parser->parse();
+    codeGenerationVisitor.generateLLVMIr(tree);
 
     return 0;
 }

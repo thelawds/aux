@@ -376,15 +376,16 @@ namespace aux::ir::tree {
     };
 
     struct VariableTree : AbstractSyntaxTree {
-        std::shared_ptr<ExpressionTree> expression;
+        std::shared_ptr<IdentifierTermTree> identifier;
         std::vector<std::shared_ptr<PrefixExpressionSuffixTree>> prefixExpressionSuffix;
 
-        inline explicit VariableTree(std::shared_ptr<ExpressionTree> expression) : expression(std::move(expression)) {}
+        inline explicit VariableTree(std::shared_ptr<IdentifierTermTree> identifier)
+                : identifier(std::move(identifier)) {}
 
         VariableTree(
-                std::shared_ptr<ExpressionTree> expression,
+                std::shared_ptr<IdentifierTermTree> identifier,
                 std::vector<std::shared_ptr<PrefixExpressionSuffixTree>> prefixExpressionSuffix
-        ) : expression(std::move(expression)), prefixExpressionSuffix(std::move(prefixExpressionSuffix)) {}
+        ) : identifier(std::move(identifier)), prefixExpressionSuffix(std::move(prefixExpressionSuffix)) {}
 
         inline void addPrefixExprSuffix(const std::shared_ptr<PrefixExpressionSuffixTree> &suffix) {
             prefixExpressionSuffix.push_back(suffix);
@@ -480,11 +481,19 @@ namespace aux::ir::tree {
     };
 
     struct FunctionBodyTree : ExpressionTree {
-        std::shared_ptr<ParameterListTree> parameters;
+        std::vector<std::shared_ptr<IdentifierTermTree>> parameters;
+        bool hasTrailingDots{false};
         std::shared_ptr<ProgramTree> body;
 
-        FunctionBodyTree(std::shared_ptr<ParameterListTree> parameters, std::shared_ptr<ProgramTree> body)
-                : parameters(std::move(parameters)), body(std::move(body)) {}
+        inline explicit FunctionBodyTree(std::shared_ptr<ProgramTree> body) : body(std::move(body)) {}
+
+        inline FunctionBodyTree(const std::shared_ptr<ParameterListTree> &params, std::shared_ptr<ProgramTree> body)
+                : body(std::move(body)), hasTrailingDots(params->hasTrailing3DotsOperator) {
+
+            for (auto &el: params->identifierTermListTree->identifiers) {
+                parameters.push_back(std::static_pointer_cast<IdentifierTermTree>(el));
+            }
+        }
 
         inline void accept(aux::ir::semantics::Visitor *visitor) override {
             visitor->visitFunctionBodyTree(this);

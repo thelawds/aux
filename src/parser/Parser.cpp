@@ -97,7 +97,7 @@ void Parser::throwInvalidBinaryExpressionException(const shared_ptr<TokenKeyword
  * Actual Parsing implemented using Recursive-Descent Approach
  */
 
-shared_ptr<aux::ir::tree::AbstractSyntaxTree> Parser::parse() {
+shared_ptr<aux::ir::tree::ProgramTree> Parser::parse() {
     try {
         return parseBlock();
     } catch (const ParsingException &exception) {
@@ -232,14 +232,16 @@ shared_ptr<aux::ir::tree::StatementTree> Parser::parseAssignmentOrFunctionCall()
             varList->variableTrees.insert(
                     varList->variableTrees.begin(),
                     make_shared<aux::ir::tree::VariableTree>(
-                            prefixExp->expressionOrIdentifier, prefixExp->peSuffixTrees
+                            dynamic_pointer_cast<aux::ir::tree::IdentifierTermTree>(prefixExp->expressionOrIdentifier),
+                            prefixExp->peSuffixTrees
                     )
             );
         } else {
             varList = make_shared<aux::ir::tree::VariableListTree>();
             varList->addVariable(
                     make_shared<aux::ir::tree::VariableTree>(
-                            prefixExp->expressionOrIdentifier, prefixExp->peSuffixTrees
+                            dynamic_pointer_cast<aux::ir::tree::IdentifierTermTree>(prefixExp->expressionOrIdentifier),
+                            prefixExp->peSuffixTrees
                     )
             );
         }
@@ -701,23 +703,16 @@ shared_ptr<aux::ir::tree::VariableListTree> Parser::parseVarList() {
 
 shared_ptr<aux::ir::tree::VariableTree> Parser::parseVariable() {
     LOG(INFO) << "Started Parsing Variable from " + peek()->getRawValue() << " at : " << peek()->getSpan();
-    shared_ptr<aux::ir::tree::ExpressionTree> expression;
 
-    if (peek()->getRawValue() == *Operator::LEFT_PARENTHESIS) {
-        skipToken();
-        expression = parseExpr();
-        checkNextTokenEquals(*Operator::RIGHT_PARENTHESIS);
-        skipToken();
-    } else {
-        if (peek()->getType() != TokenType::IDENTIFIER) {
-            return nullptr;
-        }
-        expression = make_shared<aux::ir::tree::IdentifierTermTree>(
-                dynamic_pointer_cast<TokenIdentifier>(next())
-        );
+    if (peek()->getType() != TokenType::IDENTIFIER) {
+        return nullptr;
     }
 
-    auto result = make_shared<aux::ir::tree::VariableTree>(expression);
+    auto identifier = make_shared<aux::ir::tree::IdentifierTermTree>(
+            dynamic_pointer_cast<TokenIdentifier>(next())
+    );
+
+    auto result = make_shared<aux::ir::tree::VariableTree>(identifier);
     shared_ptr<aux::ir::tree::PrefixExpressionSuffixTree> peTree;
     while ((peTree = parsePrefixExprSuffix())) {
         result->addPrefixExprSuffix(peTree);

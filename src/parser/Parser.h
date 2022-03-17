@@ -17,7 +17,7 @@ namespace aux::parser {
 
         explicit Parser(std::shared_ptr<scanner::IScanner> scanner);
 
-        std::shared_ptr<aux::ir::tree::AbstractSyntaxTree> parse();
+        std::shared_ptr<aux::ir::tree::ProgramTree> parse();
 
     private:
         std::shared_ptr<scanner::IScanner> _scanner;

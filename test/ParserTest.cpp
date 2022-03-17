@@ -124,24 +124,4 @@ TEST(ParserTest, ForFile) {
     treePrintingVisitor.printTree("../test/resources/FromFile.svg", tree.get());
 }
 
-TEST(SemanticsTest, ConstantExpressionEvaluation) {
-    string testCase = "function test (n)\n"
-                      " print (test('hello'..' world'))\n"
-                      " if (4 <= 3 and 7 > 8) then return 1 + 2 + 3 else return -1 + -2 + -3 end\n"
-                      "end\n"
-                      "abc, ghi = {[12 + 21] = 14, x = 'string1'..\" string2\", 7^2}, 77 - 127 \n"
-                      "abc[11+22] = 13";
-
-    ParserIndexedStringStream stream{testCase};
-    std::shared_ptr<ModularScanner> scanner = make_shared<ModularScanner>(stream);
-    Parser parser{scanner};
-    auto tree = parser.parse();
-
-    aux::ir::semantics::ConstantExpressionEvaluationVisitor constantExpressionEvaluationVisitor;
-    constantExpressionEvaluationVisitor.evalAllExpressions(tree.get());
-
-    TreePrintingVisitor treePrintingVisitor;
-    treePrintingVisitor.printTree("../test/resources/ConstantExprEval.svg", tree.get());
-}
-
 #pragma clang diagnostic pop
