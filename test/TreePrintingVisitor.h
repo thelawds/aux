@@ -5,8 +5,8 @@
 #ifndef AUX_TREEPRINTINGVISITOR_H
 #define AUX_TREEPRINTINGVISITOR_H
 
-#include "../src/semantics/Visitor.h"
-#include "../src/intermediate_representation/tree/Tree.h"
+#include "../src/semantics/AstVisitor.h"
+#include "../src/intermediate_representation/tree/SyntaxTree.h"
 #include <string>
 #include <stack>
 
@@ -17,7 +17,7 @@
 #include <ogdf/layered/OptimalRanking.h>
 #include <ogdf/layered/SugiyamaLayout.h>
 
-class TreePrintingVisitor : public aux::ir::semantics::Visitor {
+class TreePrintingVisitor : public aux::ir::semantics::AstVisitor {
 public:
 
     void printTree(const std::string &path, aux::ir::tree::AbstractSyntaxTree *tree);

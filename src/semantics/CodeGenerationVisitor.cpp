@@ -5,7 +5,7 @@
 #include "CodeGenerationVisitor.h"
 #include <algorithm>
 #include <glog/logging.h>
-#include "../intermediate_representation/tree/Tree.h"
+#include "intermediate_representation/tree/SyntaxTree.h"
 
 using namespace llvm;
 using namespace aux::ir::tree;

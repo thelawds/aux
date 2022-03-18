@@ -5,8 +5,8 @@
 #ifndef AUX_CODEGENERATIONVISITOR_H
 #define AUX_CODEGENERATIONVISITOR_H
 
-#include "Visitor.h"
-#include "../intermediate_representation/Token.h"
+#include "AstVisitor.h"
+#include "intermediate_representation/Token.h"
 #include <llvm/ADT/APFloat.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/STLExtras.h>
@@ -33,7 +33,7 @@
 
 namespace aux::ir::semantics {
 
-    struct CodeGenerationVisitor : Visitor {
+    struct CodeGenerationVisitor : AstVisitor {
 
         CodeGenerationVisitor();
 

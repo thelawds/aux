@@ -8,8 +8,8 @@
 #include <variant>
 #include <unordered_set>
 
-#include "../scanner/IScanner.h"
-#include "../intermediate_representation/tree/Tree.h"
+#include "scanner/IScanner.h"
+#include "intermediate_representation/tree/SyntaxTree.h"
 
 namespace aux::parser {
 

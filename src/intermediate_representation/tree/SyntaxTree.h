@@ -2,16 +2,15 @@
 // Created by miserable on 03.03.2022.
 //
 
-#ifndef AUX_TREE_H
-#define AUX_TREE_H
+#ifndef AUX_SYNTAXTREE_H
+#define AUX_SYNTAXTREE_H
 
 #include <memory>
 #include <utility>
 #include <vector>
-#include "../Token.h"
-#include "../../semantics/Visitor.h"
-
-#define MARKER_INTERFACE
+#include "intermediate_representation/Token.h"
+#include "semantics/AstVisitor.h"
+#include "util/Defines.h"
 
 namespace aux::ir::tree {
 
@@ -23,7 +22,7 @@ namespace aux::ir::tree {
 
     struct AbstractSyntaxTree {
 
-        virtual void accept(aux::ir::semantics::Visitor *visitor) = 0;
+        virtual void accept(aux::ir::semantics::AstVisitor *visitor) = 0;
 
         virtual ~AbstractSyntaxTree() = default;
 
@@ -57,7 +56,7 @@ namespace aux::ir::tree {
             statements.push_back(statement);
         }
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitProgramTree(this);
         }
     };
@@ -67,7 +66,7 @@ namespace aux::ir::tree {
      */
 
     struct EmptyStatementTree : StatementTree {
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             throw std::logic_error("Empty Statement should not be visited");
         }
     };
@@ -83,7 +82,7 @@ namespace aux::ir::tree {
         ) : keyword(tokenKeyword->getKeyword()),
             span(tokenKeyword->getSpan()) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitKeywordTerm(this);
         }
     };
@@ -97,7 +96,7 @@ namespace aux::ir::tree {
         ) : keyword(tokenKeyword->getKeyword()),
             span(tokenKeyword->getSpan()) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitKeywordStatementTree(this);
         }
     };
@@ -108,7 +107,7 @@ namespace aux::ir::tree {
         inline explicit GotoStatementTree(std::shared_ptr<TokenIdentifier> identifier)
                 : identifier(std::move(identifier)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitGotoStatementTree(this);
         }
     };
@@ -122,7 +121,7 @@ namespace aux::ir::tree {
         ) : value(tokenIdentifier->getValue()),
             span(tokenIdentifier->getSpan()) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitIdentifierTerm(this);
         }
 
@@ -144,7 +143,7 @@ namespace aux::ir::tree {
         ) : value(tokenNumeric->getValue()),
             span(tokenNumeric->getSpan()) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitIntegerTerm(this);
         }
 
@@ -161,7 +160,7 @@ namespace aux::ir::tree {
 
         inline explicit DoubleTermTree(long double value) : value(value), span({0, 0}) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitDoubleTerm(this);
         }
 
@@ -179,7 +178,7 @@ namespace aux::ir::tree {
         ) : value(tokenStringLiteral->getValue()),
             span(tokenStringLiteral->getSpan()) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitStringLiteralTerm(this);
         }
 
@@ -196,7 +195,7 @@ namespace aux::ir::tree {
             peSuffixTrees.push_back(suffixTree);
         }
 
-        void accept(aux::ir::semantics::Visitor *visitor) override {
+        void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitPrefixExpressionTermTree(this);
         }
 
@@ -214,7 +213,7 @@ namespace aux::ir::tree {
 
         inline explicit ExponentTermTree(std::shared_ptr<TermTree> left) : left(std::move(left)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitExponentTermTree(this);
         }
 
@@ -242,7 +241,7 @@ namespace aux::ir::tree {
             unaryTermOperator({.unaryOperator = op->getOperator()}),
             exponentTermTree(std::move(exponentTermTree)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitUnaryTermTree(this);
         }
 
@@ -263,7 +262,7 @@ namespace aux::ir::tree {
             binaryOperator(tokenOperator->getOperator()),
             operatorSpan(tokenOperator->getSpan()) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitBinaryExpressionTermTree(this);
         }
 
@@ -285,7 +284,7 @@ namespace aux::ir::tree {
             binaryOperator(tokenKeyword->getKeyword()),
             operatorSpan(tokenKeyword->getSpan()) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitLogicalExpressionTermTree(this);
         }
 
@@ -303,7 +302,7 @@ namespace aux::ir::tree {
 
         inline explicit TableFieldTermTree(std::shared_ptr<ExpressionTree> right) : right(std::move(right)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitTableFieldTermTree(this);
         }
 
@@ -316,7 +315,7 @@ namespace aux::ir::tree {
             fields.push_back(field);
         }
 
-        virtual void accept(aux::ir::semantics::Visitor *visitor) override {
+        virtual void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitTableConstructorTermTree(this);
         }
 
@@ -331,7 +330,7 @@ namespace aux::ir::tree {
             }
         }
 
-        void accept(aux::ir::semantics::Visitor *visitor) override {
+        void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitExpressionListTree(this);
         }
 
@@ -347,7 +346,7 @@ namespace aux::ir::tree {
         ) : identifier(std::move(identifier)),
             arguments(std::move(arguments)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitFunctionCallSuffixTree(this);
         }
 
@@ -359,7 +358,7 @@ namespace aux::ir::tree {
         inline explicit TableFieldAccessSuffixTree(std::shared_ptr<ExpressionTree> expressionTree)
                 : expressionTree(std::move(expressionTree)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitTableFieldAccessSuffixTree(this);
         }
     };
@@ -370,7 +369,7 @@ namespace aux::ir::tree {
         inline explicit StructAccessSuffixTree(std::shared_ptr<TokenIdentifier> identifier)
                 : identifier(std::move(identifier)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitStructAccessSuffixTree(this);
         }
     };
@@ -391,7 +390,7 @@ namespace aux::ir::tree {
             prefixExpressionSuffix.push_back(suffix);
         }
 
-        void accept(aux::ir::semantics::Visitor *visitor) override {
+        void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitVariableTree(this);
         }
 
@@ -404,7 +403,7 @@ namespace aux::ir::tree {
             variableTrees.push_back(variableTree);
         }
 
-        void accept(aux::ir::semantics::Visitor *visitor) override {
+        void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitVariableListTree(this);
         }
 
@@ -414,7 +413,7 @@ namespace aux::ir::tree {
 
         using IdentifierTermTree::IdentifierTermTree;
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitAttributeTree(this);
         }
     };
@@ -430,7 +429,7 @@ namespace aux::ir::tree {
             }
         }
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitIdentifierTermListTree(this);
         }
 
@@ -446,7 +445,7 @@ namespace aux::ir::tree {
         ) : identifierTermListTree(std::move(identifierTermListTree)),
             hasTrailing3DotsOperator(hasTrailing3DotsOperator) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitParameterListTree(this);
         }
 
@@ -464,7 +463,7 @@ namespace aux::ir::tree {
             attributeIdentifiers.emplace_back(identifierTermTree, attributeTree);
         }
 
-        virtual void accept(aux::ir::semantics::Visitor *visitor) override {
+        virtual void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitAttributeIdentifierListTree(this);
         }
 
@@ -475,7 +474,7 @@ namespace aux::ir::tree {
 
         explicit inline LabelTree(std::shared_ptr<TokenIdentifier> identifier) : identifier(std::move(identifier)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitLabelTree(this);
         }
     };
@@ -495,7 +494,7 @@ namespace aux::ir::tree {
             }
         }
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitFunctionBodyTree(this);
         }
     };
@@ -516,7 +515,7 @@ namespace aux::ir::tree {
             colonIdentifier = identifier;
         }
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitFunctionIdentifierTree(this);
         }
 
@@ -531,7 +530,7 @@ namespace aux::ir::tree {
                 std::shared_ptr<ExpressionListTree> expressionList
         ) : variableList(std::move(variableList)), expressionList(std::move(expressionList)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitAssignmentTree(this);
         }
     };
@@ -546,7 +545,7 @@ namespace aux::ir::tree {
         ) : attributeIdentifierListTree(std::move(attributeIdentifierListTree)),
             expressionListTree(std::move(expressionListTree)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitAttributeIdentifierAssignmentTree(this);
 
         }
@@ -559,7 +558,7 @@ namespace aux::ir::tree {
         explicit inline ReturnStatementTree(std::shared_ptr<ExpressionListTree> expressions)
                 : expressions(std::move(expressions)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitReturnStatementTree(this);
         }
     };
@@ -576,7 +575,7 @@ namespace aux::ir::tree {
                 std::shared_ptr<ProgramTree> body
         ) : identifiers(std::move(identifierList)), expressions(std::move(expressionList)), body(std::move(body)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitForLoopStatementTree(this);
         }
 
@@ -596,7 +595,7 @@ namespace aux::ir::tree {
             isLocal = true;
         }
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitFunctionDefinitionTree(this);
         }
 
@@ -609,7 +608,7 @@ namespace aux::ir::tree {
         inline WhileLoopTree(std::shared_ptr<ExpressionTree> expression, std::shared_ptr<ProgramTree> body)
                 : expression(std::move(expression)), body(std::move(body)) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitWhileLoopTree(this);
         }
     };
@@ -621,7 +620,7 @@ namespace aux::ir::tree {
                 const std::shared_ptr<ProgramTree> &body
         ) : WhileLoopTree(expression, body) {}
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitRepeatUntilTree(this);
         }
 
@@ -643,7 +642,7 @@ namespace aux::ir::tree {
             ifExpThenBlocks.emplace_back(nullptr, body);
         }
 
-        inline void accept(aux::ir::semantics::Visitor *visitor) override {
+        inline void accept(aux::ir::semantics::AstVisitor *visitor) override {
             visitor->visitIfThenElseStatementTree(this);
         }
 
@@ -653,4 +652,4 @@ namespace aux::ir::tree {
 }
 
 
-#endif //AUX_TREE_H
+#endif //AUX_SYNTAXTREE_H

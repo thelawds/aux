@@ -7,8 +7,8 @@
 
 #include "IScannerComponent.h"
 #include <istream>
-#include "../fsa/State.h"
-#include "../input_stream/IIndexedStream.h"
+#include "scanner/fsa/State.h"
+#include "scanner/input_stream/IIndexedStream.h"
 
 namespace aux::scanner::components {
 

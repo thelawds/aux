@@ -4,12 +4,12 @@
 
 #include "ModularScanner.h"
 
-#include "components/CommentsScanner.h"
-#include "components/OperatorScanner.h"
-#include "components/StringLiteralScanner.h"
-#include "components/IdentifierAndKeywordScanner.h"
-#include "components/NumericConstantsDFSAScanner.h"
-#include "../exception/ErrorMessages.h"
+#include "scanner/components/CommentsScanner.h"
+#include "scanner/components/OperatorScanner.h"
+#include "scanner/components/StringLiteralScanner.h"
+#include "scanner/components/IdentifierAndKeywordScanner.h"
+#include "scanner/components/NumericConstantsDFSAScanner.h"
+#include "exception/ErrorMessages.h"
 
 using namespace aux::scanner;
 using namespace aux::ir::tokens;

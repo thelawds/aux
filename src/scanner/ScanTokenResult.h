@@ -7,8 +7,8 @@
 
 #include <string>
 #include <memory>
-#include "../intermediate_representation/Token.h"
-#include "../util/Defines.h"
+#include "intermediate_representation/Token.h"
+#include "util/Defines.h"
 
 namespace aux::scanner {
 

@@ -6,7 +6,7 @@
 #define AUX_OPERATORSCANNER_H
 
 #include "IScannerComponent.h"
-#include "../input_stream/IIndexedStream.h"
+#include "scanner/input_stream/IIndexedStream.h"
 #include <istream>
 
 namespace aux::scanner::components {

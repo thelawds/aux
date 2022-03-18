@@ -44,9 +44,9 @@ add_executable(
         src/parser/Parser.cpp
         src/parser/Parser.h
         src/exception/Exception.h
-        src/intermediate_representation/tree/Tree.h
-        src/semantics/Visitor.h
-        src/semantics/CodeGenerationVisitor.cpp src/semantics/CodeGenerationVisitor.h )
+        src/intermediate_representation/tree/SyntaxTree.h
+        src/semantics/AstVisitor.h
+)
 
 add_executable(
         tests
@@ -65,7 +65,8 @@ add_executable(
         test/ParserTest.cpp
         src/parser/Parser.cpp
         src/parser/Parser.h
-        src/intermediate_representation/tree/Tree.h test/TreePrintingVisitor.cpp test/TreePrintingVisitor.h
+        src/intermediate_representation/tree/SyntaxTree.h test/TreePrintingVisitor.cpp test/TreePrintingVisitor.h
+        src/semantics/CodeGenerationVisitor.cpp src/semantics/CodeGenerationVisitor.h #todo: remove
 )
 
 # Setting Up Frameworks
@@ -91,10 +92,11 @@ llvm_map_components_to_libnames(
         MCA
 )
 
-target_include_directories(tests PRIVATE ${OGDF_INCLUDE_DIRS})
-target_link_libraries(tests gtest_main glog::glog OGDF )
+target_include_directories(tests PRIVATE ${OGDF_INCLUDE_DIRS} src/)
+target_link_libraries(tests gtest_main glog::glog OGDF)
 include(GoogleTest)
 gtest_discover_tests(tests)
 
 # Application
+target_include_directories(aux PRIVATE src/)
 target_link_libraries(aux glog::glog gflags ${llvm_libs})

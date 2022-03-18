@@ -9,9 +9,8 @@
 
 #include "glog/logging.h"
 #include "../src/scanner/ModularScanner.h"
-#include "../src/intermediate_representation/tree/Tree.h"
+#include "../src/intermediate_representation/tree/SyntaxTree.h"
 #include "../src/scanner/input_stream/PreprocessedFileInputStream.h"
-#include "../src/semantics/ConstantExpressionEvaluationVisitor.h"
 #include "../src/parser/Parser.h"
 #include "TreePrintingVisitor.h"
 

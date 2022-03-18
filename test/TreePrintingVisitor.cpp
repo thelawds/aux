@@ -3,7 +3,7 @@
 //
 
 #include "TreePrintingVisitor.h"
-#include "../src/intermediate_representation/tree/Tree.h"
+#include "../src/intermediate_representation/tree/SyntaxTree.h"
 
 using namespace ogdf;
 using namespace aux::ir::tree;

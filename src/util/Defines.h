@@ -7,4 +7,6 @@
 
 #define IMPLICIT // specifically to perform implicit type conversion
 
+#define MARKER_INTERFACE
+
 #endif //AUX_DEFINES_H

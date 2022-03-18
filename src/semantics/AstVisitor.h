@@ -2,8 +2,8 @@
 // Created by miserable on 03.03.2022.
 //
 
-#ifndef AUX_VISITOR_H
-#define AUX_VISITOR_H
+#ifndef AUX_ASTVISITOR_H
+#define AUX_ASTVISITOR_H
 
 
 namespace aux::ir::tree {
@@ -49,7 +49,7 @@ namespace aux::ir::tree {
 
 namespace aux::ir::semantics {
 
-    struct Visitor {
+    struct AstVisitor {
 
         virtual void visitKeywordTerm(aux::ir::tree::KeywordTermTree *) = 0;
 
@@ -127,4 +127,4 @@ namespace aux::ir::semantics {
 }
 
 
-#endif //AUX_VISITOR_H
+#endif //AUX_ASTVISITOR_H

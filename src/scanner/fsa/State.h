@@ -9,8 +9,8 @@
 #include <map>
 #include <memory>
 #include <functional>
-#include "../../exception/Exception.h"
-#include "../input_stream/IIndexedStream.h"
+#include "exception/Exception.h"
+#include "scanner/input_stream/IIndexedStream.h"
 
 namespace aux::fsa {
 

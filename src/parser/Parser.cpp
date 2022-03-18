@@ -3,7 +3,7 @@
 #include <utility>
 #include <unordered_set>
 #include <glog/logging.h>
-#include "../exception/Exception.h"
+#include "exception/Exception.h"
 
 using namespace aux::ir::tokens;
 using namespace aux::exception;

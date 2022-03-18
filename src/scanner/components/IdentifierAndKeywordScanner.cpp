@@ -1,10 +1,7 @@
-//
-// Created by miserable on 31.01.2022.
-//
 
 #include "IdentifierAndKeywordScanner.h"
-#include "../characters/Delimiters.h"
-#include "../characters/IdentifierKeyword.h"
+#include "scanner/characters/Delimiters.h"
+#include "scanner/characters/IdentifierKeyword.h"
 
 using namespace std;
 using namespace aux::fsa;

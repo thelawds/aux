@@ -3,7 +3,7 @@
 //
 
 #include "OperatorScanner.h"
-#include "../../exception/Exception.h"
+#include "exception/Exception.h"
 
 using namespace std;
 using namespace aux::scanner;
