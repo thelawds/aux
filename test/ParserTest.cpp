@@ -27,7 +27,7 @@ using namespace aux::scanner;
 using namespace aux::scanner::input_stream;
 using namespace aux::parser;
 using namespace aux::ir::tokens;
-using namespace aux::ir::tree;
+using namespace aux::ir::syntax_tree;
 
 #define COLOR_LEMON {253, 255,0}
 #define COLOR_RED {255, 0, 0}

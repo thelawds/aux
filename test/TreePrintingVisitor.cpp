@@ -6,7 +6,7 @@
 #include "../src/intermediate_representation/tree/SyntaxTree.h"
 
 using namespace ogdf;
-using namespace aux::ir::tree;
+using namespace aux::ir::syntax_tree;
 
 void TreePrintingVisitor::visitKeywordTerm(KeywordTermTree *tree) {
     newNode(*tree->keyword);

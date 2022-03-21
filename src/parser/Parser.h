@@ -17,7 +17,7 @@ namespace aux::parser {
 
         explicit Parser(std::shared_ptr<scanner::IScanner> scanner);
 
-        std::shared_ptr<aux::ir::tree::ProgramTree> parse();
+        std::shared_ptr<aux::ir::syntax_tree::ProgramTree> parse();
 
     private:
         std::shared_ptr<scanner::IScanner> _scanner;
@@ -41,201 +41,201 @@ namespace aux::parser {
         /**
          * block ::= {statement} [returnStatement]
          */
-        std::shared_ptr<aux::ir::tree::ProgramTree> parseBlock();
+        std::shared_ptr<aux::ir::syntax_tree::ProgramTree> parseBlock();
 
         /**
          * stat ::= ';' | BREAK | GOTO Identifier | DO block END | whileLoop | ifStatement
 	     *        | forLoop| LOCAL (functionDefinition | attributeIdentifierList ['=' expList])
 	     *        | label | functionDefinition | assignmentOrFuncCall
          */
-        std::shared_ptr<aux::ir::tree::StatementTree> parseStatement();
+        std::shared_ptr<aux::ir::syntax_tree::StatementTree> parseStatement();
 
         /**
          * assignmentOrFuncCall ::= functionCall | assignment
          * assignment ::= varList '=' expList
          */
-        std::shared_ptr<aux::ir::tree::StatementTree> parseAssignmentOrFunctionCall();
+        std::shared_ptr<aux::ir::syntax_tree::StatementTree> parseAssignmentOrFunctionCall();
 
         /**
          * ifStatement ::= IF exp THEN block {ELSEIF exp THEN block} [ELSE block] END
          */
-        std::shared_ptr<aux::ir::tree::IfThenElseStatementTree> parseIfStatement();
+        std::shared_ptr<aux::ir::syntax_tree::IfThenElseStatementTree> parseIfStatement();
 
         /**
          * whileLoop ::= WHILE exp DO block END | REPEAT block UNTIL exp
          */
-        std::shared_ptr<aux::ir::tree::WhileLoopTree> parseWhileLoop();
+        std::shared_ptr<aux::ir::syntax_tree::WhileLoopTree> parseWhileLoop();
 
         /**
          * functionDefinition ::= [LOCAL] FUNCTION funcIdentifier funcBody
          */
-        std::shared_ptr<aux::ir::tree::FunctionDefinitionTree> parseFunctionDefinition();
+        std::shared_ptr<aux::ir::syntax_tree::FunctionDefinitionTree> parseFunctionDefinition();
 
         /**
          * forLoop ::= FOR IdentifierList ('=' | In) expList DO block END
          */
-        std::shared_ptr<aux::ir::tree::ForLoopStatementTree> parseForLoop();
+        std::shared_ptr<aux::ir::syntax_tree::ForLoopStatementTree> parseForLoop();
 
         /**
          * returnStatement ::= RETURN [expLst] [';']
          */
-        std::shared_ptr<aux::ir::tree::ReturnStatementTree> parseReturnStatement();
+        std::shared_ptr<aux::ir::syntax_tree::ReturnStatementTree> parseReturnStatement();
 
         /**
          * funcIdentifier ::= Identifier {'.' Identifier} [':' Identifier]
          */
-        std::shared_ptr<aux::ir::tree::FunctionIdentifierTree> parseFunctionIdentifier();
+        std::shared_ptr<aux::ir::syntax_tree::FunctionIdentifierTree> parseFunctionIdentifier();
 
         /**
          * funcBody ::= '(' [parList] ')' block END
          */
-        std::shared_ptr<aux::ir::tree::FunctionBodyTree> parseFunctionBody();
+        std::shared_ptr<aux::ir::syntax_tree::FunctionBodyTree> parseFunctionBody();
 
         /**
          * label ::= '::' Identifier '::'
          */
-        std::shared_ptr<aux::ir::tree::LabelTree> parseLabel();
+        std::shared_ptr<aux::ir::syntax_tree::LabelTree> parseLabel();
 
         /**
          * attIdentifierList ::=  Identifier attrib {',' Identifier attrib}
          */
-        std::shared_ptr<aux::ir::tree::AttributeIdentifierListTree> parseAttribIdentifierList();
+        std::shared_ptr<aux::ir::syntax_tree::AttributeIdentifierListTree> parseAttribIdentifierList();
 
         /**
          * parList ::= IdentifierList [',' '...'] | '...'
          */
-        std::shared_ptr<aux::ir::tree::ParameterListTree> parseParList();
+        std::shared_ptr<aux::ir::syntax_tree::ParameterListTree> parseParList();
 
         /**
          * IdentifierList ::= Identifier {',' Identifier}
          */
-        std::shared_ptr<aux::ir::tree::IdentifierTermListTree> parseIdentifierList(bool allowTrailingComma = false);
+        std::shared_ptr<aux::ir::syntax_tree::IdentifierTermListTree> parseIdentifierList(bool allowTrailingComma = false);
 
         /**
          * attrib ::= ['\<' Identifier '>']
          */
-        std::shared_ptr<aux::ir::tree::AttributeTree> parseAttribute();
+        std::shared_ptr<aux::ir::syntax_tree::AttributeTree> parseAttribute();
 
         /**
          * expList ::= exp {',', exp}
          */
-        std::shared_ptr<aux::ir::tree::ExpressionListTree> parseExprList();
+        std::shared_ptr<aux::ir::syntax_tree::ExpressionListTree> parseExprList();
 
         /**
          * exp ::= '...' | FUNCTION funcBody | tableConstructor | arlExpr
          */
-        std::shared_ptr<ir::tree::ExpressionTree> parseExpr();
+        std::shared_ptr<ir::syntax_tree::ExpressionTree> parseExpr();
 
         /**
          * prefixExpr ::= (Identifier | '(' exp ')') {peSuffix | funcCallSuffix}
          */
-        std::shared_ptr<aux::ir::tree::PrefixExpressionTermTree> parsePrefixExpr();
+        std::shared_ptr<aux::ir::syntax_tree::PrefixExpressionTermTree> parsePrefixExpr();
 
         /**
          * varList::= var {',' var}
          */
-        std::shared_ptr<aux::ir::tree::VariableListTree> parseVarList();
+        std::shared_ptr<aux::ir::syntax_tree::VariableListTree> parseVarList();
 
         /**
          * var ::= (Identifier | '(' exp ')')  {peSuffix}
          */
-        std::shared_ptr<aux::ir::tree::VariableTree> parseVariable();
+        std::shared_ptr<aux::ir::syntax_tree::VariableTree> parseVariable();
 
         /**
          * peSuffix ::= '[' exp ']' | '.' Identifier
          */
-        std::shared_ptr<aux::ir::tree::PrefixExpressionSuffixTree> parsePrefixExprSuffix();
+        std::shared_ptr<aux::ir::syntax_tree::PrefixExpressionSuffixTree> parsePrefixExprSuffix();
 
         /**
          * funcCallSuffix ::= [':' Identifier] args
          */
-        std::shared_ptr<aux::ir::tree::FunctionCallSuffixTree> parseFuncCallSuffix();
+        std::shared_ptr<aux::ir::syntax_tree::FunctionCallSuffixTree> parseFuncCallSuffix();
 
         /**
          * args ::= '(' [expList] ')' | tableConstructor | LiteralString
          */
-        std::shared_ptr<aux::ir::tree::ArgumentsTree> parseArgs();
+        std::shared_ptr<aux::ir::syntax_tree::ArgumentsTree> parseArgs();
 
         /**
          * tableConstructor ::= '{' [fieldList] '}'
          */
-        std::shared_ptr<aux::ir::tree::TableConstructorTermTree> parseTableConstructor();
+        std::shared_ptr<aux::ir::syntax_tree::TableConstructorTermTree> parseTableConstructor();
 
         /**
          * fieldList ::= field {(',' | ';') field} [(',' | ';')]
          */
-        std::shared_ptr<aux::ir::tree::TableConstructorTermTree> parseTableFieldList();
+        std::shared_ptr<aux::ir::syntax_tree::TableConstructorTermTree> parseTableFieldList();
 
         /**
          * field ::= '[' exp ']' '=' exp | Identifier '=' exp | exp
          */
-        std::shared_ptr<aux::ir::tree::TableFieldTermTree> parseTableField();
+        std::shared_ptr<aux::ir::syntax_tree::TableFieldTermTree> parseTableField();
 
         /**
          * arlExpression ::= logicalAndTerm {OR logicalOrTerm}
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseArlExpr();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseArlExpr();
 
         /**
          * logicalAndTerm ::= relationalTerm {AND relationalTerm}
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseLogicalAndTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseLogicalAndTerm();
 
         /**
          * relationalTerm     ::= bitwiseOrTerm {RelationalOperator bitwiseOrTerm}
          * RelationalOperator ::= ('\<' | '>' | '\<=' | '>=' | '~=' | '==')
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseRelationalTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseRelationalTerm();
 
         /**
          * bitwiseOrTerm ::= bitwiseXorTerm {'|' bitwiseXorTerm}
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseBitwiseOrTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseBitwiseOrTerm();
 
         /**
          * bitwiseXorTerm ::= bitwiseAndTerm {'~' bitwiseAndTerm}
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseBitwiseXorTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseBitwiseXorTerm();
 
         /**
          * bitwiseAndTerm ::= shiftedTerm {'&' shiftedTerm}
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseBitwiseAndTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseBitwiseAndTerm();
 
         /**
          * shiftedTerm ::= stringConcatenationTerm {('<<' | '>>') stringConcatenationTerm
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseShiftedTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseShiftedTerm();
 
         /**
          * stringConcatenationTerm ::= summationTerm {'..' summationTerm}
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseStringConcatenationTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseStringConcatenationTerm();
 
         /**
          * summationTerm :== productTerm {('+' | '-') productTerm}
          */
-        std::shared_ptr<aux::ir::tree::TermTree> parseSummationTerm();
+        std::shared_ptr<aux::ir::syntax_tree::TermTree> parseSummationTerm();
 
         /**
          * productTerm ::= unaryTerm {('*' | '/' | '//' | '%')  productTerm}
          */
-        std::shared_ptr<ir::tree::TermTree> parseProductTerm();
+        std::shared_ptr<ir::syntax_tree::TermTree> parseProductTerm();
 
         /**
          * unaryTerm ::= [(NOT | '#' | '-' | '~')] exponentTerm
          */
-        std::shared_ptr<ir::tree::TermTree> parseUnaryTerm();
+        std::shared_ptr<ir::syntax_tree::TermTree> parseUnaryTerm();
 
         /**
          * exponentTerm ::= term ['^' exponentTerm]
          */
-        std::shared_ptr<ir::tree::TermTree> parseExponentTerm();
+        std::shared_ptr<ir::syntax_tree::TermTree> parseExponentTerm();
 
         /**
          * term ::= NIL | FALSE | TRUE | Numeral | LiteralString | prefixExpr
          */
-        std::shared_ptr<ir::tree::TermTree> parseTerm();
+        std::shared_ptr<ir::syntax_tree::TermTree> parseTerm();
 
     };
 

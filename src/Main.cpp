@@ -4,7 +4,9 @@
 #include "scanner/ModularScanner.h"
 #include "scanner/input_stream/PreprocessedFileInputStream.h"
 #include "parser/Parser.h"
-#include "semantics/CodeGenerationVisitor.h"
+//#include "semantics/CodeGenerationVisitor.h"
+#include "semantics/transformation/AstToProgramTreeTransformationVisitor.h"
+#include "semantics/codegen/CodeGenerationVisitor.h"
 
 DEFINE_string(src, "", "Source file to be compiled");
 
@@ -23,9 +25,12 @@ int main(int argc, char** argv) {
     aux::scanner::input_stream::PreprocessedFileInputStream fileInputStream(FLAGS_src);
     auto scanner = std::make_shared<aux::scanner::ModularScanner>(fileInputStream);
     auto parser = std::make_shared<aux::parser::Parser>(scanner);
-    aux::ir::semantics::CodeGenerationVisitor codeGenerationVisitor;
-    auto tree = parser->parse();
-    codeGenerationVisitor.generateLLVMIr(tree);
+    aux::semantics::AstToProgramTreeTransformationVisitor transformationVisitor;
+    aux::semantics::codegen::CodeGenerationVisitor codeGenerationVisitor;
+
+    auto syntaxTree = parser->parse();
+    auto programTree = transformationVisitor.transform(syntaxTree.get());
+    codeGenerationVisitor.generateLLVMIr(programTree);
 
     return 0;
 }

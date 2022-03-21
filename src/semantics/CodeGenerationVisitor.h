@@ -31,85 +31,85 @@
 #include <stack>
 #include <map>
 
-namespace aux::ir::semantics {
+namespace aux::semantics {
 
     struct CodeGenerationVisitor : AstVisitor {
 
         CodeGenerationVisitor();
 
-        void visitKeywordTerm(tree::KeywordTermTree *termTree) override;
+        void visitKeywordTerm(aux::ir::syntax_tree::KeywordTermTree *termTree) override;
 
-        void visitKeywordStatementTree(tree::KeywordStatementTree *statementTree) override;
+        void visitKeywordStatementTree(aux::ir::syntax_tree::KeywordStatementTree *statementTree) override;
 
-        void visitGotoStatementTree(tree::GotoStatementTree *statementTree) override;
+        void visitGotoStatementTree(aux::ir::syntax_tree::GotoStatementTree *statementTree) override;
 
-        void visitIdentifierTerm(tree::IdentifierTermTree *termTree) override;
+        void visitIdentifierTerm(aux::ir::syntax_tree::IdentifierTermTree *termTree) override;
 
-        void visitIntegerTerm(tree::IntegerTermTree *termTree) override;
+        void visitIntegerTerm(aux::ir::syntax_tree::IntegerTermTree *termTree) override;
 
-        void visitDoubleTerm(tree::DoubleTermTree *termTree) override;
+        void visitDoubleTerm(aux::ir::syntax_tree::DoubleTermTree *termTree) override;
 
-        void visitStringLiteralTerm(tree::StringLiteralTermTree *termTree) override;
+        void visitStringLiteralTerm(aux::ir::syntax_tree::StringLiteralTermTree *termTree) override;
 
-        void visitPrefixExpressionTermTree(tree::PrefixExpressionTermTree *termTree) override;
+        void visitPrefixExpressionTermTree(aux::ir::syntax_tree::PrefixExpressionTermTree *termTree) override;
 
-        void visitExponentTermTree(tree::ExponentTermTree *termTree) override;
+        void visitExponentTermTree(aux::ir::syntax_tree::ExponentTermTree *termTree) override;
 
-        void visitUnaryTermTree(tree::UnaryTermTree *termTree) override;
+        void visitUnaryTermTree(aux::ir::syntax_tree::UnaryTermTree *termTree) override;
 
-        void visitBinaryExpressionTermTree(tree::BinaryExpressionTermTree *termTree) override;
+        void visitBinaryExpressionTermTree(aux::ir::syntax_tree::BinaryExpressionTermTree *termTree) override;
 
-        void visitLogicalExpressionTermTree(tree::LogicalExpressionTermTree *termTree) override;
+        void visitLogicalExpressionTermTree(aux::ir::syntax_tree::LogicalExpressionTermTree *termTree) override;
 
-        void visitTableFieldTermTree(tree::TableFieldTermTree *termTree) override;
+        void visitTableFieldTermTree(aux::ir::syntax_tree::TableFieldTermTree *termTree) override;
 
-        void visitTableConstructorTermTree(tree::TableConstructorTermTree *termTree) override;
+        void visitTableConstructorTermTree(aux::ir::syntax_tree::TableConstructorTermTree *termTree) override;
 
-        void visitExpressionListTree(tree::ExpressionListTree *listTree) override;
+        void visitExpressionListTree(aux::ir::syntax_tree::ExpressionListTree *listTree) override;
 
-        void visitFunctionCallSuffixTree(tree::FunctionCallSuffixTree *suffixTree) override;
+        void visitFunctionCallSuffixTree(aux::ir::syntax_tree::FunctionCallSuffixTree *suffixTree) override;
 
-        void visitTableFieldAccessSuffixTree(tree::TableFieldAccessSuffixTree *suffixTree) override;
+        void visitTableFieldAccessSuffixTree(aux::ir::syntax_tree::TableFieldAccessSuffixTree *suffixTree) override;
 
-        void visitStructAccessSuffixTree(tree::StructAccessSuffixTree *suffixTree) override;
+        void visitStructAccessSuffixTree(aux::ir::syntax_tree::StructAccessSuffixTree *suffixTree) override;
 
-        void visitVariableTree(tree::VariableTree *variableTree) override;
+        void visitVariableTree(aux::ir::syntax_tree::VariableTree *variableTree) override;
 
-        void visitVariableListTree(tree::VariableListTree *listTree) override;
+        void visitVariableListTree(aux::ir::syntax_tree::VariableListTree *listTree) override;
 
-        void visitAttributeTree(tree::AttributeTree *attributeTree) override;
+        void visitAttributeTree(aux::ir::syntax_tree::AttributeTree *attributeTree) override;
 
-        void visitIdentifierTermListTree(tree::IdentifierTermListTree *listTree) override;
+        void visitIdentifierTermListTree(aux::ir::syntax_tree::IdentifierTermListTree *listTree) override;
 
-        void visitParameterListTree(tree::ParameterListTree *listTree) override;
+        void visitParameterListTree(aux::ir::syntax_tree::ParameterListTree *listTree) override;
 
-        void visitAttributeIdentifierListTree(tree::AttributeIdentifierListTree *listTree) override;
+        void visitAttributeIdentifierListTree(aux::ir::syntax_tree::AttributeIdentifierListTree *listTree) override;
 
-        void visitLabelTree(tree::LabelTree *labelTree) override;
+        void visitLabelTree(aux::ir::syntax_tree::LabelTree *labelTree) override;
 
-        void visitFunctionBodyTree(tree::FunctionBodyTree *bodyTree) override;
+        void visitFunctionBodyTree(aux::ir::syntax_tree::FunctionBodyTree *bodyTree) override;
 
-        void visitFunctionIdentifierTree(tree::FunctionIdentifierTree *identifierTree) override;
+        void visitFunctionIdentifierTree(aux::ir::syntax_tree::FunctionIdentifierTree *identifierTree) override;
 
-        void visitAssignmentTree(tree::AssignmentTree *assignmentTree) override;
+        void visitAssignmentTree(aux::ir::syntax_tree::AssignmentTree *assignmentTree) override;
 
-        void visitAttributeIdentifierAssignmentTree(tree::AttributeIdentifierAssignmentTree *assignmentTree) override;
+        void visitAttributeIdentifierAssignmentTree(aux::ir::syntax_tree::AttributeIdentifierAssignmentTree *assignmentTree) override;
 
-        void visitReturnStatementTree(tree::ReturnStatementTree *statementTree) override;
+        void visitReturnStatementTree(aux::ir::syntax_tree::ReturnStatementTree *statementTree) override;
 
-        void visitForLoopStatementTree(tree::ForLoopStatementTree *statementTree) override;
+        void visitForLoopStatementTree(aux::ir::syntax_tree::ForLoopStatementTree *statementTree) override;
 
-        void visitFunctionDefinitionTree(tree::FunctionDefinitionTree *definitionTree) override;
+        void visitFunctionDefinitionTree(aux::ir::syntax_tree::FunctionDefinitionTree *definitionTree) override;
 
-        void visitWhileLoopTree(tree::WhileLoopTree *loopTree) override;
+        void visitWhileLoopTree(aux::ir::syntax_tree::WhileLoopTree *loopTree) override;
 
-        void visitRepeatUntilTree(tree::RepeatUntilTree *untilTree) override;
+        void visitRepeatUntilTree(aux::ir::syntax_tree::RepeatUntilTree *untilTree) override;
 
-        void visitIfThenElseStatementTree(tree::IfThenElseStatementTree *ifElseTree) override;
+        void visitIfThenElseStatementTree(aux::ir::syntax_tree::IfThenElseStatementTree *ifElseTree) override;
 
-        void visitProgramTree(tree::ProgramTree *programTree) override;
+        void visitProgramTree(aux::ir::syntax_tree::ProgramTree *programTree) override;
 
-        void generateLLVMIr(const std::shared_ptr<tree::ProgramTree>& programTree);
+        void generateLLVMIr(const std::shared_ptr<aux::ir::syntax_tree::ProgramTree>& programTree);
 
     private:
         enum TosType{
@@ -137,7 +137,7 @@ namespace aux::ir::semantics {
         std::map<std::string, std::pair<llvm::Value *, TosType>> allocTable;
 
         llvm::ConstantPointerNull *getNullValue() const;
-        llvm::Value *getBoolValue(tokens::Keyword keyword) const;
+        llvm::Value *getBoolValue(ir::tokens::Keyword keyword) const;
         llvm::Value *getIntValue(uint64_t value) const;
         llvm::Value *getFloatValue(long double value) const;
         llvm::Constant *getStringValue(const std::string& value) const;

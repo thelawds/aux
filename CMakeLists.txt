@@ -46,7 +46,14 @@ add_executable(
         src/exception/Exception.h
         src/intermediate_representation/tree/SyntaxTree.h
         src/semantics/AstVisitor.h
-)
+        src/intermediate_representation/tree/ProgramTree.h
+        src/semantics/transformation/AstToProgramTreeTransformationVisitor.cpp
+        src/semantics/transformation/AstToProgramTreeTransformationVisitor.h
+        src/semantics/transformation/expressions/ArithmeticLogical.cpp
+        src/semantics/transformation/expressions/Declarations_TableAccess.cpp
+        src/semantics/transformation/statements/Declarations_FunctionCall.cpp
+        src/semantics/transformation/statements/ControlFlow.cpp
+        src/intermediate_representation/tree/ProgramTree.cpp src/semantics/codegen/CodegenerationVisitor.cpp src/semantics/codegen/CodeGenerationVisitor.h src/semantics/codegen/ArithmeticLogicalExpressions.cpp src/semantics/codegen/Declarations_FunctionCall.cpp src/intermediate_representation/SymbolTable.h)
 
 add_executable(
         tests
@@ -67,7 +74,7 @@ add_executable(
         src/parser/Parser.h
         src/intermediate_representation/tree/SyntaxTree.h test/TreePrintingVisitor.cpp test/TreePrintingVisitor.h
         src/semantics/CodeGenerationVisitor.cpp src/semantics/CodeGenerationVisitor.h #todo: remove
-)
+        src/semantics/ProgramTreeVisitor.h)
 
 # Setting Up Frameworks
 # Testing
@@ -76,20 +83,22 @@ llvm_map_components_to_libnames(
         `llvm-config --cxxflags --ldflags --system-libs --libs all`
         Analysis
         Core
-        ExecutionEngine
-        InstCombine
-        Object
-        OrcJIT
-        RuntimeDyld
-        ScalarOpts
+#        ExecutionEngine
+#        InstCombine
+#        Object
+#        OrcJIT
+#        RuntimeDyld
+#        ScalarOpts
         Support
-        TransformUtils
-        native
-        Target
-        AsmParser
-        BinaryFormat
-        MC
-        MCA
+        codegen
+        irreader
+#        TransformUtils
+#        native
+#        Target
+#        AsmParser
+#        BinaryFormat
+#        MC
+#        MCA
 )
 
 target_include_directories(tests PRIVATE ${OGDF_INCLUDE_DIRS} src/)

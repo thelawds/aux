@@ -6,11 +6,12 @@
 #include <algorithm>
 #include <glog/logging.h>
 #include "intermediate_representation/tree/SyntaxTree.h"
+#include "intermediate_representation/tree/ProgramTree.h"
 
 using namespace llvm;
-using namespace aux::ir::tree;
+using namespace aux::ir::syntax_tree;
 using namespace aux::ir::tokens;
-using namespace aux::ir::semantics;
+using namespace aux::semantics;
 
 
 CodeGenerationVisitor::CodeGenerationVisitor()
@@ -46,7 +47,7 @@ ConstantPointerNull *CodeGenerationVisitor::getNullValue() const {
 Value *CodeGenerationVisitor::getBoolValue(Keyword keyword) const {
     return ConstantFP::get(
             *context, APFloat(
-                    keyword == tokens::Keyword::TRUE ? 1.0 : -1.0
+                    keyword == Keyword::TRUE ? 1.0 : -1.0
             ));
 //    return ConstantInt::get(
 //            *context,
