@@ -58,11 +58,11 @@ void ArithmeticExpression::accept(ProgramTreeVisitor *visitor) {
     visitor->visitArithmeticExpression(this);
 }
 
-IdentifierVariableReferenceTree::IdentifierVariableReferenceTree(string identifier)
+IdentifierReferenceTree::IdentifierReferenceTree(string identifier)
         : identifier(std::move(identifier)) {}
 
-void IdentifierVariableReferenceTree::accept(aux::semantics::ProgramTreeVisitor *visitor) {
-    visitor->visitIdentifierVariableReferenceTree(this);
+void IdentifierReferenceTree::accept(aux::semantics::ProgramTreeVisitor *visitor) {
+    visitor->visitIdentifierReferenceTree(this);
 }
 
 void AssignmentStatement::append(
@@ -87,4 +87,17 @@ void ChunkTree::accept(aux::semantics::ProgramTreeVisitor *visitor) {
 
 void ChunkTree::append(const std::shared_ptr<StatementTree>& statementTree) {
     statements.push_back(statementTree);
+}
+
+TableReferenceTree::TableReferenceTree(
+        const shared_ptr<VariableReferenceTree> &table,
+        const shared_ptr<ExpressionTree> &expression
+) : table(table), expression(expression) {}
+
+void TableReferenceTree::accept(aux::semantics::ProgramTreeVisitor *visitor) {
+    visitor->visitTableReferenceTree(this);
+}
+
+void TableConstructorTerm::accept(aux::semantics::ProgramTreeVisitor *visitor) {
+    visitor->visitTableConstructorTerm(this);
 }
