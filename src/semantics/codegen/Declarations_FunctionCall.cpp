@@ -12,7 +12,7 @@ void CodeGenerationVisitor::visitChunkTree(statement::ChunkTree *tree) {
     }
 }
 
-void CodeGenerationVisitor::visitIdentifierVariableReferenceTree(IdentifierVariableReferenceTree *tree) {
+void CodeGenerationVisitor::visitIdentifierReferenceTree(statement::IdentifierReferenceTree *tree) {
     if (symbolTable.contains(tree->identifier)) {
         stackPush(symbolTable.find(tree->identifier));
     } else {
@@ -22,19 +22,21 @@ void CodeGenerationVisitor::visitIdentifierVariableReferenceTree(IdentifierVaria
     }
 }
 
+void CodeGenerationVisitor::visitTableReferenceTree(aux::ir::program_tree::statement::TableReferenceTree *tree) {
+    auto tableReference = visit(tree->table);
+    auto expression = visit(tree->expression);
+    stackPush(
+            builder->CreateCall(
+                    module->getFunction("__getTableField__"),
+                    {tableReference, expression}
+            )
+    );
+}
+
 void CodeGenerationVisitor::visitAssignmentStatement(AssignmentStatement *assignmentStatement) {
     for (auto &[variable, expression]: assignmentStatement->assignments) {
-        auto *allocation = (AllocaInst *) visit(variable);
+        auto *variableReference = visit(variable);
         auto *value = visit(expression);
-        builder->CreateStore(value, allocation);
-        builder->CreateCall(
-                module->getFunction("__print__"), {
-                        builder->CreateLoad(
-                                getTypeT(), allocation,
-                                "printingValueTemp_" +
-                                        std::dynamic_pointer_cast<IdentifierVariableReferenceTree>(variable)->identifier
-                        )
-                }
-        );
+        builder->CreateStore(value, variableReference);
     }
 }

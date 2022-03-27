@@ -315,7 +315,7 @@ namespace aux::ir::syntax_tree {
             fields.push_back(field);
         }
 
-        virtual void accept(aux::semantics::AstVisitor *visitor) override {
+        void accept(aux::semantics::AstVisitor *visitor) override {
             visitor->visitTableConstructorTermTree(this);
         }
 

@@ -33,13 +33,17 @@ CodeGenerationVisitor::CodeGenerationVisitor()
     StructType::create(*context, {Type::getInt32Ty(*context), Type::getInt8PtrTy(*context)}, "T");
 
     std::vector<FunctionDefinition> stdlibFunctionDefinitions = {
-            {"__getBoolean__", getTypeT(),                  {Type::getInt1Ty(*context)}},
-            {"__getInteger__", getTypeT(),                  {Type::getInt64Ty(*context)}},
-            {"__getFloat__",   getTypeT(),                  {Type::getDoubleTy(*context)}},
-            {"__getString__",  getTypeT(),                  {Type::getInt8PtrTy(*context)}},
-            {"__toFloat__",    Type::getDoubleTy(*context), {getTypeT()}},
-            {"__print__",      Type::getVoidTy(*context),   {getTypeT()}},
-            {"__read__",       getTypeT(),                  {}}
+            {"__getTable__",      getTypeT(),                   {}},
+            {"__getTableField__", getTypeT()->getPointerTo(),   {getTypeT()->getPointerTo(), getTypeT()}},
+            {"__putField__",      Type::getVoidTy(*context),    {getTypeT(),                 getTypeT(), getTypeT()}},
+            {"__getBoolean__",    getTypeT(),                   {Type::getInt1Ty(*context)}},
+            {"__getInteger__",    getTypeT(),                   {Type::getInt64Ty(*context)}},
+            {"__getFloat__",      getTypeT(),                   {Type::getDoubleTy(*context)}},
+            {"__getString__",     getTypeT(),                   {Type::getInt8PtrTy(*context)}},
+            {"__toFloat__",       Type::getDoubleTy(*context),  {getTypeT()}},
+            {"__toString__",      Type::getInt8PtrTy(*context), {getTypeT()}},
+            {"__print__",         Type::getVoidTy(*context),    {getTypeT()}},
+            {"__read__",          getTypeT(),                   {}}
     };
 
     for (auto &[name, returnType, argTypes]: stdlibFunctionDefinitions) {
@@ -59,6 +63,41 @@ void CodeGenerationVisitor::generateLLVMIr(const std::shared_ptr<ProgramTree> &p
     auto *basicBlock = BasicBlock::Create(*context, "begin", function);
     builder->SetInsertPoint(basicBlock);
     programTree->accept(this);
+
+    for (auto[name, allocaInst]: symbolTable.getInternal()) {
+        builder->CreateCall(
+                module->getFunction("__print__"), {
+                        visit(
+                                std::make_shared<aux::ir::program_tree::expression::ExpressionTerm>(
+                                        name + ": ",
+                                        aux::ir::program_tree::expression::ExpressionTerm::STRING_LITERAL
+                                )
+                        )
+                }
+        );
+
+        builder->CreateCall(
+                module->getFunction("__print__"), {
+                        builder->CreateLoad(
+                                getTypeT(), allocaInst,
+                                "printingValueTemp_" + name
+                        )
+                }
+        );
+
+        builder->CreateCall(
+                module->getFunction("__print__"), {
+                        visit(
+                                std::make_shared<aux::ir::program_tree::expression::ExpressionTerm>(
+                                        "\n",
+                                        aux::ir::program_tree::expression::ExpressionTerm::STRING_LITERAL
+                                )
+                        )
+                }
+        );
+
+    }
+
     builder->CreateRetVoid();
     verifyFunction(*function, &errs());
 
@@ -126,3 +165,5 @@ Value *CodeGenerationVisitor::visit(const std::shared_ptr<ProgramTree> &abstract
 llvm::StructType *CodeGenerationVisitor::getTypeT() {
     return StructType::getTypeByName(*context, "T");
 }
+
+

@@ -37,7 +37,11 @@ void AstToProgramTreeTransformationVisitor::visitParameterListTree(ParameterList
 }
 
 void AstToProgramTreeTransformationVisitor::visitTableConstructorTermTree(TableConstructorTermTree *tree) {
+    // todo: this implementation produces only empty table constructor
 
+    stackPush(
+            std::make_shared<aux::ir::program_tree::expression::TableConstructorTerm>()
+    );
 }
 
 void AstToProgramTreeTransformationVisitor::visitTableFieldTermTree(TableFieldTermTree *tree) {
@@ -59,14 +63,14 @@ void AstToProgramTreeTransformationVisitor::visitFunctionCallSuffixTree(Function
 }
 
 void AstToProgramTreeTransformationVisitor::visitTableFieldAccessSuffixTree(TableFieldAccessSuffixTree *tree) {
-
+    stackPush(visit(tree->expressionTree));
 }
 
 void AstToProgramTreeTransformationVisitor::visitStructAccessSuffixTree(StructAccessSuffixTree *tree) {
-
+    stackPush(
+            std::make_shared<aux::ir::program_tree::expression::ExpressionTerm>(
+                    tree->identifier->getValue(),
+                    aux::ir::program_tree::expression::ExpressionTerm::TermType::STRING_LITERAL
+            )
+    );
 }
-
-
-
-
-

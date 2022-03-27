@@ -46,7 +46,13 @@ namespace aux::ir::program_tree {
             std::string value;
             TermType termType;
 
-            explicit ExpressionTerm(std::string value, TermType termType);
+            ExpressionTerm(std::string value, TermType termType);
+
+            void accept(aux::semantics::ProgramTreeVisitor *visitor) override;
+
+        };
+
+        struct TableConstructorTerm : ExpressionTree {
 
             void accept(aux::semantics::ProgramTreeVisitor *visitor) override;
 
@@ -98,14 +104,31 @@ namespace aux::ir::program_tree {
 
             void accept(aux::semantics::ProgramTreeVisitor *visitor) override;
 
-            void append(const std::shared_ptr<StatementTree>& statementTree);
+            void append(const std::shared_ptr<StatementTree> &statementTree);
 
         };
 
-        struct IdentifierVariableReferenceTree : VariableReferenceTree {
+        struct IdentifierReferenceTree : VariableReferenceTree {
             std::string identifier;
 
-            explicit IdentifierVariableReferenceTree(std::string identifier);
+            explicit IdentifierReferenceTree(std::string identifier);
+
+            void accept(aux::semantics::ProgramTreeVisitor *visitor) override;
+
+        };
+
+        /**
+         * Represents table reference of form: <b>table[expression]</b>. \n
+         * Table references of form <b> table.Identifier</b> are converted to <b>table["Identifier"] </b>
+         */
+        struct TableReferenceTree : VariableReferenceTree {
+            std::shared_ptr<VariableReferenceTree> table;
+            std::shared_ptr<ExpressionTree> expression;
+
+            TableReferenceTree(
+                    const std::shared_ptr<VariableReferenceTree> &table,
+                    const std::shared_ptr<ExpressionTree> &expression
+            );
 
             void accept(aux::semantics::ProgramTreeVisitor *visitor) override;
 
@@ -117,6 +140,7 @@ namespace aux::ir::program_tree {
             std::vector<Assignment> assignments;
 
             void append(const std::shared_ptr<VariableReferenceTree> &);
+
             void append(const std::shared_ptr<VariableReferenceTree> &, const std::shared_ptr<ExpressionTree> &);
 
             void accept(aux::semantics::ProgramTreeVisitor *visitor) override;

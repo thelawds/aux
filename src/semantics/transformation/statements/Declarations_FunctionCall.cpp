@@ -23,12 +23,30 @@ void AstToProgramTreeTransformationVisitor::visitAttributeIdentifierListTree(Att
 }
 
 void AstToProgramTreeTransformationVisitor::visitVariableTree(VariableTree *tree) {
-    // todo: add support for table[exp] and table.Identifier
-    stackPush(
-            std::make_shared<aux::ir::program_tree::statement::IdentifierVariableReferenceTree>(
-                    tree->identifier->value
-            )
-    );
+    using namespace aux::ir::program_tree::statement;
+    using aux::ir::program_tree::ExpressionTree;
+
+    if (tree->prefixExpressionSuffix.empty()) {
+        stackPush(
+                std::make_shared<IdentifierReferenceTree>(
+                        tree->identifier->value
+                )
+        );
+    } else {
+        auto tableReferenceTree = std::make_shared<TableReferenceTree>(
+                std::make_shared<IdentifierReferenceTree>(tree->identifier->value),
+                std::dynamic_pointer_cast<ExpressionTree>(visit(tree->prefixExpressionSuffix[0]))
+        );
+
+        for (int i = 1; i < tree->prefixExpressionSuffix.size(); ++i) {
+            tableReferenceTree = std::make_shared<TableReferenceTree>(
+                    tableReferenceTree,
+                    std::dynamic_pointer_cast<ExpressionTree>(visit(tree->prefixExpressionSuffix[i]))
+            );
+        }
+
+        stackPush(tableReferenceTree);
+    }
 }
 
 void AstToProgramTreeTransformationVisitor::visitVariableListTree(VariableListTree *tree) {

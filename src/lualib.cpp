@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <string>
 #include <stdexcept>
+#include <map>
 
 #ifdef _WIN32
 #define DLLEXPORT __declspec(dllexport)
@@ -11,9 +12,9 @@
 enum Type {
     INTEGER = 0,
     STRING = 1,
-    STRUCT = 2,
-    FLOAT = 3,
-    NIL = 4
+    FLOAT = 2,
+    NIL = 3,
+    TABLE = 4
 };
 
 struct T {
@@ -27,6 +28,67 @@ struct T {
 /**
  * <b> Functions working with types </b>
  */
+
+using TableType = std::map<std::string, T>;
+
+extern "C" DLLEXPORT double __toFloat__(T value);
+extern "C++" DLLEXPORT std::string __toString__(T value);
+
+extern "C" DLLEXPORT T __getTable__() {
+    TableType *table = new TableType();
+    return {TABLE, (char *) table};
+}
+
+std::string __toStringForTable__(T value){
+    switch (value.type) {
+        case INTEGER:
+            return "INT_" + __toString__(value);
+        case STRING:
+            return "STRING_" + __toString__(value);
+        case FLOAT:
+            return "INT_" + std::to_string((long long) __toFloat__(value));
+        default:
+            throw std::logic_error("Tables can only be referenced by integer expressions and strings");
+    }
+}
+
+std::string __fromStringForTable__(std::string str){
+    if (str.substr(0, 4) == "INT_") {
+        return str.substr(4);
+    } else if (str.substr(0, 7) == "STRING_") {
+        return str.substr(7);
+    } else {
+        return str;
+    }
+}
+
+extern "C" DLLEXPORT T* __getTableField__(T& table, T fieldReference){
+
+    if (table.type != TABLE) {
+        throw std::logic_error("Error accessing with []. Not a table"); // todo
+    }
+
+    TableType *internalTable = (TableType *) table.value;
+    std::string reference = __toStringForTable__(fieldReference);
+
+
+
+    if (internalTable->find(reference) == internalTable->end()) {
+        (*internalTable)[reference] = {NIL, nullptr};
+    }
+
+    return &internalTable->at(reference);
+}
+
+extern "C" DLLEXPORT void __putField__(T table, T fieldReference, T fieldValue){
+    if (table.type != TABLE) {
+        throw std::logic_error("Error accessing with []. Not a table"); // todo
+    }
+
+    TableType *internalTable = (TableType *) table.value;
+    std::string reference = __toStringForTable__(fieldReference);
+    (*internalTable)[reference] = fieldValue;
+}
 
 extern "C" DLLEXPORT T __getBoolean__(bool b) {
     long long *b2 = new long long(b);
@@ -58,8 +120,22 @@ extern "C" DLLEXPORT double __toFloat__(T value) {
             return *((double *) value.value);
         default:
             std::string type = value.type == NIL ? "nil" : "type struct";
-            fprintf(stderr, "Conversion from %s to double can not be performed", type.c_str());
             throw std::logic_error("Conversion from " + type + " to double can not be performed");
+    }
+}
+
+extern "C++" DLLEXPORT std::string __toString__(T value) {
+    switch (value.type) {
+        case INTEGER:
+            return std::to_string(*((long long *) value.value));
+        case STRING:
+            return value.value;
+        case FLOAT:
+            return std::to_string(__toFloat__(value));
+        case NIL:
+            return "nil";
+        default:
+            throw std::logic_error("Conversion from struct to string can not be performed"); // todo: make structs printable
     }
 }
 
@@ -68,6 +144,7 @@ extern "C" DLLEXPORT double __toFloat__(T value) {
  */
 
 extern "C" DLLEXPORT void __print__(T string) {
+    // todo: change printing
     switch (string.type) {
         case INTEGER:
             fprintf(stdout, "%lld", *((long long *) string.value));
@@ -78,13 +155,26 @@ extern "C" DLLEXPORT void __print__(T string) {
         case FLOAT:
             fprintf(stdout, "%g", *((double *) string.value));
             break;
-        case STRUCT:
-            return; //todo
+        case TABLE: {
+            fprintf(stdout, "Table {");
+            bool needComma = false;
+            for (auto field: *((TableType *) string.value)) {
+                if (needComma) {
+                    fprintf(stdout, ", ");
+                }
+                auto &name = field.first;
+                auto &value = field.second;
+                fprintf(stdout, "%s: ", __fromStringForTable__(name).c_str());
+                __print__(value);
+                needComma = true;
+            }
+            fprintf(stdout, "}");
+            break;
+        }
         case NIL:
-            fprintf(stdout, "%s", "NIL");
+            fprintf(stdout, "%s\n", "NIL");
             break;
     }
-    fprintf(stdout, "\n"); // todo remove
 }
 
 extern "C" DLLEXPORT T __read__() {

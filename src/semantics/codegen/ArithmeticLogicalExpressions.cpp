@@ -14,7 +14,7 @@ void CodeGenerationVisitor::visitNilTerm(NilTerm *term) {
     stackPush(
             ConstantStruct::get(
                     getTypeT(),
-                    ConstantInt::get(*context, APInt(32, 4)),
+                    ConstantInt::get(*context, APInt(32, 3)),
                     ConstantPointerNull::get(Type::getInt8PtrTy(*context))
             )
     );
@@ -83,6 +83,14 @@ void CodeGenerationVisitor::visitExpressionTerm(ExpressionTerm *term) {
         }
     }
 
+}
+
+void CodeGenerationVisitor::visitTableConstructorTerm(TableConstructorTerm *term) {
+    stackPush(
+            builder->CreateCall(
+                    module->getFunction("__getTable__")
+            )
+    );
 }
 
 void CodeGenerationVisitor::visitArithmeticExpression(ArithmeticExpression *expression) {

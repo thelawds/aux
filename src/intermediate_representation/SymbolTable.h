@@ -30,6 +30,10 @@ namespace aux::ir {
             values[name] = value;
         }
 
+        inline std::unordered_map<std::string, T>& getInternal(){
+            return values;
+        }
+
     private:
 
         std::unordered_map<std::string, T> values;

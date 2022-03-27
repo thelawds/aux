@@ -25,15 +25,20 @@
 -- x,y,z = "Hello", 32.3 - 7^2
 x, y, z = nil, true, false
 
+x = {}
+x[1] = 21
+x.Hello = 32 - y
+x.table = {}
+x.table[0] = 3
+
 y, z = nil
 
 z = 0xABC212
 y = 32.43
 z = "Hello, world!"
 y = z
-x = y
 
 a = 21 + 93
 b = 3.0 - 1.23 + a * 7
 b = z
-a = 0xABC - a*a*a
+a = 0xABC - a*a*a 

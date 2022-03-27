@@ -790,7 +790,7 @@ shared_ptr<aux::ir::syntax_tree::TableConstructorTermTree> Parser::parseTableCon
 
         if (peek()->getRawValue() == *Operator::RIGHT_CURLY_BRACE) {
             skipToken();
-            return {};
+            return make_shared<aux::ir::syntax_tree::TableConstructorTermTree>();
         }
 
         auto result = parseTableFieldList();

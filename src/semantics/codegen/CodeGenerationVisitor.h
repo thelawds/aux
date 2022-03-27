@@ -47,6 +47,8 @@ namespace aux::semantics::codegen {
 
         void visitExpressionTerm(aux::ir::program_tree::expression::ExpressionTerm *term) override;
 
+        void visitTableConstructorTerm(aux::ir::program_tree::expression::TableConstructorTerm *term) override;
+
         void visitArithmeticExpression(aux::ir::program_tree::expression::ArithmeticExpression *expression) override;
 
         /**
@@ -55,9 +57,9 @@ namespace aux::semantics::codegen {
 
         void visitChunkTree(aux::ir::program_tree::statement::ChunkTree *tree) override;
 
-        void visitIdentifierVariableReferenceTree(
-                aux::ir::program_tree::statement::IdentifierVariableReferenceTree *tree
-        ) override;
+        void visitIdentifierReferenceTree(aux::ir::program_tree::statement::IdentifierReferenceTree *tree) override;
+
+        void visitTableReferenceTree(aux::ir::program_tree::statement::TableReferenceTree *tree) override;
 
         void visitAssignmentStatement(aux::ir::program_tree::statement::AssignmentStatement *assignmentStatement) override;
 
