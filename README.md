@@ -16,3 +16,4 @@ Project Status:
 - [GLog](https://github.com/google/glog)
 - [GFlags](https://github.com/gflags/gflags)
 - [OGDF](https://github.com/ogdf/ogdf)
+- [LLVM](https://github.com/llvm/llvm-project.git)

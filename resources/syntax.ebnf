@@ -64,5 +64,4 @@ explist ::= exp {',' exp}														# done
 fieldlist ::= field {(',' | ';') field} [(',' | ';')]							# done
 field ::= '[' exp ']' '=' exp | Identifier '=' exp | exp						# done
 var ::= Identifier {peSuffix} | '(' exp ')' {peSuffix}							# done, Changed from: var ::=  Identifier | prefixexp '[' exp ']' | prefixexp '.' Identifier
-funccall ::= prefixexp funcCallSuffix											# done, functioncall ::= prefixexp args | prefixexp ':' Identifier args 
 funcCallSuffix ::= [':' Identifier] args 										# done, added

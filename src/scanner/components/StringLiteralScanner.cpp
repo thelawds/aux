@@ -3,7 +3,7 @@
 //
 
 #include "StringLiteralScanner.h"
-#include "../characters/StringLiteral.h"
+#include "scanner/characters/StringLiteral.h"
 #include <unordered_set>
 #include <memory>
 

@@ -3,8 +3,8 @@
 //
 
 #include "NumericConstantsDFSAScanner.h"
-#include "../characters/Delimiters.h"
-#include "../characters/Numeric.h"
+#include "scanner/characters/Delimiters.h"
+#include "scanner/characters/Numeric.h"
 
 using namespace std;
 using namespace aux::fsa;

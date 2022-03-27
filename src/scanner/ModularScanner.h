@@ -9,8 +9,8 @@
 #include <vector>
 #include <memory>
 #include "IScanner.h"
-#include "input_stream/IIndexedStream.h"
-#include "components/IScannerComponent.h"
+#include "scanner/input_stream/IIndexedStream.h"
+#include "scanner/components/IScannerComponent.h"
 
 namespace aux::scanner {
 

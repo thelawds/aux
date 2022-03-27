@@ -5,7 +5,7 @@
 #ifndef AUX_ISCANNERCOMPONENT_H
 #define AUX_ISCANNERCOMPONENT_H
 
-#include "../ScanTokenResult.h"
+#include "scanner/ScanTokenResult.h"
 
 namespace aux::scanner::components{
 

@@ -3,11 +3,10 @@
 #include <utility>
 #include <unordered_set>
 #include <glog/logging.h>
-#include "../exception/Exception.h"
+#include "exception/Exception.h"
 
 using namespace aux::ir::tokens;
 using namespace aux::exception;
-using namespace aux::ir::ast;
 using namespace aux::scanner;
 using namespace aux::parser;
 using namespace std;
@@ -34,7 +33,8 @@ void Parser::skipToken() {
  * Exception Generation Helping Functions:
  */
 
-#define STATEMENT_ERROR true
+#define STATEMENT_ERROR         true
+#define ALLOW_TRAILING_COMMA    true
 
 void Parser::checkNextTokenEquals(const string &expected, bool isStatement = false) {
     if (peek()->getRawValue() != expected) {
@@ -54,7 +54,7 @@ void Parser::checkNextTokenIn(const unordered_set<string> &expected, bool isStat
                                    : ParsingException::expressionErrorBuilder();
 
         for (const auto &e: expected) {
-            builder.addExpected("<" + e + ">");
+            builder.addExpected("< " + e + " >");
         }
 
         throw builder
@@ -76,64 +76,87 @@ void Parser::checkNextTokenTypeEquals(const TokenType &expected, bool isStatemen
     }
 }
 
+void Parser::throwInvalidBinaryExpressionException(const shared_ptr<TokenOperator> &op) {
+    throw ParsingException::expressionErrorBuilder()
+            .addExpected("<Expression> " + op->getRawValue() + " <Expression>")
+            .withActual("<Expression> " + op->getRawValue() + " <Empty>")
+            .withSpan(op->getSpan())
+            .build();
+}
+
+void Parser::throwInvalidBinaryExpressionException(const shared_ptr<TokenKeyword> &keyword) {
+    throw ParsingException::expressionErrorBuilder()
+            .addExpected("<Expression> " + keyword->getRawValue() + " <Expression>")
+            .withActual("<Expression> " + keyword->getRawValue() + " <Empty>")
+            .withSpan(keyword->getSpan())
+            .build();
+}
+
+
 /**
  * Actual Parsing implemented using Recursive-Descent Approach
  */
 
-shared_ptr<BaseTree> Parser::parse() {
+shared_ptr<aux::ir::syntax_tree::ProgramTree> Parser::parse() {
     try {
         return parseBlock();
-    } catch (ParsingException &exception) {
+    } catch (const ParsingException &exception) {
         LOG(FATAL) << exception.what() << "\n Exiting...";
     }
 }
 
 
-shared_ptr<ListTree> Parser::parseBlock() {
+shared_ptr<aux::ir::syntax_tree::ProgramTree> Parser::parseBlock() {
     LOG(INFO) << "Started Parsing Block from " + peek()->getRawValue() << " at : " << peek()->getSpan();
-    auto result = make_shared<ListTree>(ListTree::Type::STATEMENTS_LIST);
+
+    auto result = make_shared<aux::ir::syntax_tree::ProgramTree>();
 
     while (true) {
         auto statement = parseStatement();
         if (!statement) {
             break;
         }
-        result->pushBack(statement);
+
+        if (!dynamic_pointer_cast<aux::ir::syntax_tree::EmptyStatementTree>(statement)) {
+            result->addStatement(statement);
+        }
     }
 
-    auto returnStatement = parseReturnStatement();
-    if (returnStatement) {
-        result->pushBack(returnStatement);
+    if (auto returnStatement = parseReturnStatement()) {
+        result->addStatement(returnStatement);
     }
 
     return result;
 }
 
-shared_ptr<BaseTree> Parser::parseStatement() {
+shared_ptr<aux::ir::syntax_tree::StatementTree> Parser::parseStatement() {
     LOG(INFO) << "Started Parsing Statement from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
-    if (peek()->getRawValue() == *Operator::SEMI_COLON || peek()->getRawValue() == *Keyword::BREAK) {
-        auto op = next();
-        return make_shared<TokenTree>(op);
+    if (peek()->getRawValue() == *Operator::SEMI_COLON) {
+        skipToken();
+        return make_shared<aux::ir::syntax_tree::EmptyStatementTree>();
+    } else if (peek()->getRawValue() == *Keyword::BREAK) {
+        return make_shared<aux::ir::syntax_tree::KeywordStatementTree>(
+                static_pointer_cast<TokenKeyword>(next())
+        );
     } else if (peek()->getRawValue() == *Keyword::GOTO) {
         skipToken();
         checkNextTokenTypeEquals(TokenType::IDENTIFIER);
-        auto identifier = next();
-        return make_shared<TokenTree>(TokenTree::Type::GOTO_IDENTIFIER, identifier);
+        return make_shared<aux::ir::syntax_tree::GotoStatementTree>(
+                static_pointer_cast<TokenIdentifier>(next())
+        );
     } else if (peek()->getRawValue() == *Keyword::DO) {
         skipToken();
         auto block = parseBlock();
-        checkNextTokenEquals(*Keyword::END), skipToken();
+        checkNextTokenEquals(*Keyword::END);
+        skipToken();
         return block;
     } else if (peek()->getRawValue() == *Keyword::LOCAL) {
         skipToken();
         auto funcDefinition = parseFunctionDefinition();
         if (funcDefinition) {
-            return make_shared<BinTree>(
-                    BinTree::Type::LOCAL_FUNCTION_DEFINITION,
-                    funcDefinition->left, funcDefinition->right,
-                    nullptr
-            );
+            funcDefinition->makeLocal();
+            return funcDefinition;
         } else {
             auto attributeIdentifierList = parseAttribIdentifierList();
             if (!attributeIdentifierList) {
@@ -145,48 +168,45 @@ shared_ptr<BaseTree> Parser::parseStatement() {
                         .build();
             }
             if (peek()->getRawValue() == *Operator::EQUAL) {
-                auto op = next();
+                skipToken();
                 auto expList = parseExprList();
-                return make_shared<BinTree>(BinTree::Type::BINARY_OPERATION, attributeIdentifierList, expList, op);
+                return make_shared<aux::ir::syntax_tree::AttributeIdentifierAssignmentTree>(
+                        attributeIdentifierList, expList
+                );
             } else {
-                return make_shared<BinTree>(BinTree::Type::BINARY_OPERATION, attributeIdentifierList, nullptr, nullptr);
+                return attributeIdentifierList;
             }
         }
     }
-    auto whileLoop = parseWhileLoop();
-    if (whileLoop) {
+
+    if (auto whileLoop = parseWhileLoop()) {
         return whileLoop;
     }
 
-    auto ifStatement = parseIfStatement();
-    if (ifStatement) {
+    if (auto ifStatement = parseIfStatement()) {
         return ifStatement;
     }
 
-    auto forLoop = parseForLoop();
-    if (forLoop) {
+    if (auto forLoop = parseForLoop()) {
         return forLoop;
     }
 
-    auto label = parseLabel();
-    if (label) {
+    if (auto label = parseLabel()) {
         return label;
     }
 
-    auto functionDefinition = parseFunctionDefinition();
-    if (functionDefinition) {
+    if (auto functionDefinition = parseFunctionDefinition()) {
         return functionDefinition;
     }
 
-    auto assignmentOrFunctionCall = parseAssignmentOrFunctionCall();
-    if (assignmentOrFunctionCall) {
+    if (auto assignmentOrFunctionCall = parseAssignmentOrFunctionCall()) {
         return assignmentOrFunctionCall;
     }
 
     return nullptr;
 }
 
-shared_ptr<BinTree> Parser::parseAssignmentOrFunctionCall() {
+shared_ptr<aux::ir::syntax_tree::StatementTree> Parser::parseAssignmentOrFunctionCall() {
     LOG(INFO) << "Started Parsing Assignment or Function Call from " + peek()->getRawValue() << " at : "
               << peek()->getSpan();
 
@@ -195,26 +215,39 @@ shared_ptr<BinTree> Parser::parseAssignmentOrFunctionCall() {
         return nullptr;
     }
 
-    auto modifiersSize = prefixExp->suffixes->trees.size();
-    auto lastModifier = modifiersSize > 0 ? prefixExp->suffixes->trees[modifiersSize - 1] : nullptr;
+    auto modifiersSize = prefixExp->peSuffixTrees.size();
+    auto lastModifier = modifiersSize > 0 ? prefixExp->peSuffixTrees[modifiersSize - 1] : nullptr;
 
-    if (lastModifier && dynamic_pointer_cast<FunctionCallSuffixTree>(lastModifier)) {
-        return make_shared<BinTree>(BinTree::Type::FUNCTION_CALL, nullptr, prefixExp, nullptr);
+    if (lastModifier && dynamic_pointer_cast<aux::ir::syntax_tree::FunctionCallSuffixTree>(lastModifier)) {
+        return prefixExp;
     } else {
         checkNextTokenIn({*Operator::COMMA, *Operator::EQUAL});
         if (peek()->getRawValue() == *Operator::COMMA) {
             skipToken();
         }
 
+
         auto varList = parseVarList();
-        if (!varList) {
-            varList = make_shared<ListTree>(ListTree::Type::VARIABLE_LIST);
-            varList->pushBack(prefixExp);
+        if (varList) {
+            varList->variableTrees.insert(
+                    varList->variableTrees.begin(),
+                    make_shared<aux::ir::syntax_tree::VariableTree>(
+                            dynamic_pointer_cast<aux::ir::syntax_tree::IdentifierTermTree>(prefixExp->expressionOrIdentifier),
+                            prefixExp->peSuffixTrees
+                    )
+            );
         } else {
-            varList->trees.insert(varList->trees.begin(), prefixExp);
+            varList = make_shared<aux::ir::syntax_tree::VariableListTree>();
+            varList->addVariable(
+                    make_shared<aux::ir::syntax_tree::VariableTree>(
+                            dynamic_pointer_cast<aux::ir::syntax_tree::IdentifierTermTree>(prefixExp->expressionOrIdentifier),
+                            prefixExp->peSuffixTrees
+                    )
+            );
         }
 
-        auto op = (checkNextTokenEquals(*Operator::EQUAL), next());
+        checkNextTokenEquals(*Operator::EQUAL);
+        skipToken();
         auto exprList = parseExprList();
         if (!exprList) {
             throw ParsingException::statementErrorBuilder()
@@ -223,11 +256,14 @@ shared_ptr<BinTree> Parser::parseAssignmentOrFunctionCall() {
                     .withSpan(peek()->getSpan())
                     .build();
         }
-        return make_shared<BinTree>(BinTree::Type::BINARY_OPERATION, varList, exprList, op);
+
+        return make_shared<aux::ir::syntax_tree::AssignmentTree>(
+                varList, exprList
+        );
     }
 }
 
-shared_ptr<ListTree> Parser::parseIfStatement() {
+shared_ptr<aux::ir::syntax_tree::IfThenElseStatementTree> Parser::parseIfStatement() {
     LOG(INFO) << "Started Parsing If Statement from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto throwNoExpressionFoundError = [&]() {
@@ -242,38 +278,43 @@ shared_ptr<ListTree> Parser::parseIfStatement() {
         return nullptr;
     }
 
+    auto result = make_shared<aux::ir::syntax_tree::IfThenElseStatementTree>();
+
     skipToken();
-    auto result = make_shared<ListTree>(ListTree::Type::IF_THEN_ELSE);
-    auto expr = parseExpr();
-    if (!expr) {
+    auto expression = parseExpr();
+    if (!expression) {
         throwNoExpressionFoundError();
     }
-    checkNextTokenEquals(*Keyword::THEN), skipToken();
-    auto block = parseBlock();
-    result->pushBack(make_shared<BinTree>(BinTree::Type::IF_THEN, expr, block, nullptr));
+    checkNextTokenEquals(*Keyword::THEN);
+    skipToken();
+    auto body = parseBlock();
+    result->addExpressionAndBody(expression, body);
+
     while (peek()->getRawValue() == *Keyword::ELSEIF) {
         skipToken();
-        expr = parseExpr();
-        if (!expr) {
+        expression = parseExpr();
+        if (!expression) {
             throwNoExpressionFoundError();
         }
-        checkNextTokenEquals(*Keyword::THEN), skipToken();
-        block = parseBlock();
-        result->pushBack(make_shared<BinTree>(BinTree::Type::IF_THEN, expr, block, nullptr));
+        checkNextTokenEquals(*Keyword::THEN);
+        skipToken();
+        body = parseBlock();
+        result->addExpressionAndBody(expression, body);
     }
 
     if (peek()->getRawValue() == *Keyword::ELSE) {
         skipToken();
-        block = parseBlock();
-        result->pushBack(make_shared<BinTree>(BinTree::Type::ELSE, nullptr, block, nullptr));
+        body = parseBlock();
+        result->addElseBody(body);
     }
 
-    checkNextTokenEquals(*Keyword::END), skipToken();
+    checkNextTokenEquals(*Keyword::END);
+    skipToken();
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseWhileLoop() {
+shared_ptr<aux::ir::syntax_tree::WhileLoopTree> Parser::parseWhileLoop() {
     LOG(INFO) << "Started Parsing While Loop from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto throwNoExpressionFoundError = [&]() {
@@ -286,29 +327,33 @@ shared_ptr<BinTree> Parser::parseWhileLoop() {
 
     if (peek()->getRawValue() == *Keyword::WHILE) {
         skipToken();
-        auto expr = parseExpr();
-        if (!expr) {
+        auto expression = parseExpr();
+        if (!expression) {
             throwNoExpressionFoundError();
         }
-        checkNextTokenEquals(*Keyword::DO), skipToken();
-        auto block = parseBlock();
-        checkNextTokenEquals(*Keyword::END), skipToken();
-        return make_shared<BinTree>(BinTree::Type::WHILE_LOOP, expr, block, nullptr);
+        checkNextTokenEquals(*Keyword::DO);
+        skipToken();
+        auto body = parseBlock();
+        checkNextTokenEquals(*Keyword::END);
+        skipToken();
+        return make_shared<aux::ir::syntax_tree::WhileLoopTree>(expression, body);
     } else if (peek()->getRawValue() == *Keyword::REPEAT) {
         skipToken();
         auto block = parseBlock();
-        checkNextTokenEquals(*Keyword::UNTIL), skipToken();
+        checkNextTokenEquals(*Keyword::UNTIL);
+        skipToken();
         auto expr = parseExpr();
         if (!expr) {
             throwNoExpressionFoundError();
         }
-        return make_shared<BinTree>(BinTree::Type::REPEAT_UNTIL_LOOP, expr, block, nullptr);
+
+        return make_shared<aux::ir::syntax_tree::RepeatUntilTree>(expr, block);
     }
 
     return nullptr;
 }
 
-shared_ptr<BinTree> Parser::parseFunctionDefinition() {
+shared_ptr<aux::ir::syntax_tree::FunctionDefinitionTree> Parser::parseFunctionDefinition() {
     LOG(INFO) << "Started Parsing Function Definition from " + peek()->getRawValue();
 
     if (peek()->getRawValue() != *Keyword::FUNCTION) {
@@ -319,27 +364,28 @@ shared_ptr<BinTree> Parser::parseFunctionDefinition() {
     auto identifier = parseFunctionIdentifier();
     if (!identifier) {
         throw ParsingException::statementErrorBuilder()
-                .addExpected("<Identifier>")
+                .addExpected("<Function Identifier>")
                 .withActual(
-                        peek()->getRawValue() + "of type " + *peek()->getType() + ", which is not valid Identifier"
+                        peek()->getRawValue() + " of type " + *peek()->getType()
+                        + ", which is not valid Function Identifier"
                 )
                 .withSpan(peek()->getSpan())
                 .build();
     }
 
-    auto funcBody = parseFunctionBody();
-    if (!funcBody) {
+    auto functionBody = parseFunctionBody();
+    if (!functionBody) {
         throw ParsingException::statementErrorBuilder()
-                .addExpected("<(args...)>")
-                .withActual(peek()->getRawValue() + ", does not match required <(args...)>")
+                .addExpected("<(args...) list of expressions END>")
+                .withActual(peek()->getRawValue() + ", does not match required <(args...) list of expressions END>")
                 .withSpan(peek()->getSpan())
                 .build();
     }
 
-    return make_shared<BinTree>(BinTree::Type::FUNCTION_DEFINITION, identifier, funcBody, nullptr);
+    return make_shared<aux::ir::syntax_tree::FunctionDefinitionTree>(identifier, functionBody);
 }
 
-shared_ptr<ForLoopTree> Parser::parseForLoop() {
+shared_ptr<aux::ir::syntax_tree::ForLoopStatementTree> Parser::parseForLoop() {
     LOG(INFO) << "Started Parsing For Loop from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     if (peek()->getRawValue() != *Keyword::FOR) {
@@ -350,90 +396,82 @@ shared_ptr<ForLoopTree> Parser::parseForLoop() {
     auto identifierList = parseIdentifierList();
     if (!identifierList) {
         throw ParsingException::statementErrorBuilder()
-                .addExpected("<Identifier>")
+                .addExpected("List of <Identifier>")
                 .withActual(peek()->getRawValue())
                 .withSpan(peek()->getSpan())
                 .build();
     }
 
-    auto op = (checkNextTokenIn({*Operator::EQUAL, *Keyword::IN}), next());
-    auto expList = parseExprList();
-    if (!expList) {
+    checkNextTokenIn({*Operator::EQUAL, *Keyword::IN});
+    skipToken();
+
+    auto expressionList = parseExprList();
+    if (!expressionList) {
         throw ParsingException::statementErrorBuilder()
-                .addExpected("<Expression*>")
-                .withActual(peek()->getRawValue() + ", which is not valid <Expression>")
+                .addExpected("List of <Expression>")
+                .withActual(peek()->getRawValue() + ", which is not valid List of <Expression>")
                 .withSpan(peek()->getSpan())
                 .build();
     }
 
-    checkNextTokenEquals(*Keyword::DO), skipToken();
-    auto block = parseBlock();
-    checkNextTokenEquals(*Keyword::END), skipToken();
+    checkNextTokenEquals(*Keyword::DO);
+    skipToken();
 
-    return make_shared<ForLoopTree>(identifierList, op, expList, block);
+    auto block = parseBlock();
+
+    checkNextTokenEquals(*Keyword::END);
+    skipToken();
+
+    return make_shared<aux::ir::syntax_tree::ForLoopStatementTree>(
+            identifierList, expressionList, block
+    );
 }
 
-shared_ptr<BinTree> Parser::parseReturnStatement() {
+shared_ptr<aux::ir::syntax_tree::ReturnStatementTree> Parser::parseReturnStatement() {
     LOG(INFO) << "Started Parsing Return statement from " + peek()->getRawValue() << " at : " << peek()->getSpan();;
 
     if (peek()->getRawValue() != *Keyword::RETURN) {
         return nullptr;
     }
 
-    auto returnKeyword = next();
+    skipToken();
     auto exprList = parseExprList();
     if (peek()->getRawValue() == *Operator::SEMI_COLON) {
         skipToken();
     }
 
-    return make_shared<BinTree>(BinTree::Type::BINARY_OPERATION, nullptr, exprList, returnKeyword);
+    return make_shared<aux::ir::syntax_tree::ReturnStatementTree>(exprList);
 }
 
-shared_ptr<BinTree> Parser::parseAssignment() {
-    LOG(INFO) << "Started Parsing Assignment from " + peek()->getRawValue() << " at : " << peek()->getSpan();
-
-    auto varList = parseVarList();
-    if (!varList) {
+shared_ptr<aux::ir::syntax_tree::FunctionIdentifierTree> Parser::parseFunctionIdentifier() {
+    LOG(INFO) << "Started Parsing Function Identifier from " + peek()->getRawValue() << " at : " << peek()->getSpan();
+    if (peek()->getType() != TokenType::IDENTIFIER) {
         return nullptr;
     }
 
-    auto tokEqual = (checkNextTokenEquals(*Operator::EQUAL, STATEMENT_ERROR), next());
-    auto expressionList = parseExprList();
-    if (!expressionList) {
-        throw ParsingException::statementErrorBuilder()
-                .addExpected("<Expression> on the right-hand side of an assignment operator")
-                .withActual(peek()->getRawValue() + ", which is not and <Expression>")
-                .withSpan(peek()->getSpan())
-                .build();
-    }
-
-    return make_shared<BinTree>(BinTree::Type::BINARY_OPERATION, varList, expressionList, tokEqual);
-}
-
-shared_ptr<ListTree> Parser::parseFunctionIdentifier() {
-    LOG(INFO) << "Started Parsing Function Identifier from " + peek()->getRawValue() << " at : " << peek()->getSpan();
-    if (peek()->getType() != TokenType::IDENTIFIER) {
-        return {nullptr};
-    }
-
-    auto result = make_shared<ListTree>(ListTree::Type::FUNCTION_IDENTIFIER_SEQUENCE);
-    result->pushBack(make_shared<TokenTree>(next()));
+    auto result = make_shared<aux::ir::syntax_tree::FunctionIdentifierTree>(
+            static_pointer_cast<TokenIdentifier>(next())
+    );
 
     while (peek()->getRawValue() == *Operator::DOT) {
-        auto identifier = (skipToken(), checkNextTokenTypeEquals(TokenType::IDENTIFIER, STATEMENT_ERROR), next());
-        result->pushBack(make_shared<TokenTree>(TokenTree::Type::DOT_IDENTIFIER, identifier));
+        skipToken();
+        checkNextTokenTypeEquals(TokenType::IDENTIFIER, STATEMENT_ERROR);
+        auto identifier = static_pointer_cast<TokenIdentifier>(next());
+        result->addSecondaryIdentifier(identifier);
     }
 
     if (peek()->getRawValue() == *Operator::COLON) {
-        auto identifier = (skipToken(), checkNextTokenTypeEquals(TokenType::IDENTIFIER, STATEMENT_ERROR), next());
-        result->pushBack(make_shared<TokenTree>(TokenTree::Type::COLON_IDENTIFIER, identifier));
+        skipToken();
+        checkNextTokenTypeEquals(TokenType::IDENTIFIER, STATEMENT_ERROR);
+        result->setColonIdentifier(
+                static_pointer_cast<TokenIdentifier>(next())
+        );
     }
 
     return result;
-
 }
 
-shared_ptr<BinTree> Parser::parseFunctionBody() {
+shared_ptr<aux::ir::syntax_tree::FunctionBodyTree> Parser::parseFunctionBody() {
     LOG(INFO) << "Started Parsing Function Body from " + peek()->getRawValue() << " at : " << peek()->getSpan();;
 
     if (peek()->getRawValue() == *Operator::LEFT_PARENTHESIS) {
@@ -444,57 +482,54 @@ shared_ptr<BinTree> Parser::parseFunctionBody() {
         checkNextTokenEquals(*Operator::RIGHT_PARENTHESIS, STATEMENT_ERROR);
         skipToken();
 
-        auto block = parseBlock();
+        auto body = parseBlock();
 
         checkNextTokenEquals(*Keyword::END, STATEMENT_ERROR);
         skipToken();
 
-        return make_shared<BinTree>(BinTree::Type::FUNCTION_BODY, parList, block, nullptr);
+        return make_shared<aux::ir::syntax_tree::FunctionBodyTree>(parList, body);
     }
 
-    return {nullptr};
+    return nullptr;
 }
 
-shared_ptr<TokenTree> Parser::parseLabel() {
+shared_ptr<aux::ir::syntax_tree::LabelTree> Parser::parseLabel() {
     LOG(INFO) << "Started Parsing Label from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     if (peek()->getRawValue() == *Operator::COLON_COLON) {
         skipToken();
         checkNextTokenTypeEquals(TokenType::IDENTIFIER, STATEMENT_ERROR);
 
-        auto result = make_shared<TokenTree>(TokenTree::Type::LABEL, next());
+        auto result = make_shared<aux::ir::syntax_tree::LabelTree>(
+                static_pointer_cast<TokenIdentifier>(next())
+        );
 
         checkNextTokenEquals(*Operator::COLON_COLON, STATEMENT_ERROR);
         skipToken();
         return result;
     }
 
-    return {nullptr};
+    return nullptr;
 }
 
-shared_ptr<ListTree> Parser::parseAttribIdentifierList() {
-    LOG(INFO) << "Started Parsing Attribute Identifiers List from " + peek()->getRawValue() << " at : "
-              << peek()->getSpan();
+shared_ptr<aux::ir::syntax_tree::AttributeIdentifierListTree> Parser::parseAttribIdentifierList() {
+    LOG(INFO) << "Parsing Attribute Identifiers List from " + peek()->getRawValue() << " at : " << peek()->getSpan();
+
     static unordered_set<string> separators = {*Operator::COMMA, *Operator::DOT_DOT_DOT};
 
     if (peek()->getType() != TokenType::IDENTIFIER) {
-        return {nullptr};
+        return nullptr;
     }
 
-    auto result = make_shared<ListTree>(ListTree::Type::ATTRIBUTE_IDENTIFIER_LIST);
+    shared_ptr<aux::ir::syntax_tree::AttributeIdentifierListTree> result;
     auto parseAttributedIdentifier = [&]() {
         auto identifier = next();
-        auto attribute = parseAttribute();
-        if (attribute) {
-            result->pushBack(
-                    make_shared<BinTree>(
-                            BinTree::Type::ATTRIBUTE_IDENTIFIER,
-                            make_shared<TokenTree>(identifier), attribute, nullptr
-                    )
-            );
-        } else {
-            result->pushBack(make_shared<TokenTree>(identifier));
-        }
+        result->addAttributeIdentifier(
+                make_shared<aux::ir::syntax_tree::IdentifierTermTree>(
+                        static_pointer_cast<TokenIdentifier>(identifier)
+                ),
+                parseAttribute()
+        );
     };
 
     parseAttributedIdentifier();
@@ -507,68 +542,75 @@ shared_ptr<ListTree> Parser::parseAttribIdentifierList() {
     return result;
 }
 
-shared_ptr<BaseTree> Parser::parseParList() {
+shared_ptr<aux::ir::syntax_tree::ParameterListTree> Parser::parseParList() {
     LOG(INFO) << "Started Parsing Parameters List from " + peek()->getRawValue() << " at : " << peek()->getSpan();
+
+    auto identifierList = parseIdentifierList(ALLOW_TRAILING_COMMA);
+
     if (peek()->getRawValue() == *Operator::DOT_DOT_DOT) {
-        return make_shared<TokenTree>(TokenTree::Type::PARAMETER_LIST, next());
+        skipToken();
+        return make_shared<aux::ir::syntax_tree::ParameterListTree>(identifierList, true);
     }
 
-    return parseIdentifierList();
+    return make_shared<aux::ir::syntax_tree::ParameterListTree>(identifierList, false);
 }
 
-shared_ptr<ListTree> Parser::parseIdentifierList(bool parseAdditionalDotDotDot) {
+shared_ptr<aux::ir::syntax_tree::IdentifierTermListTree> Parser::parseIdentifierList(bool allowTrailingComma) {
     LOG(INFO) << "Started Parsing Identifier List from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     if (peek()->getType() != TokenType::IDENTIFIER) {
-        return {nullptr};
+        return nullptr;
     }
 
-    auto result = make_shared<ListTree>(ListTree::Type::IDENTIFIER_LIST);
-    result->pushBack(make_shared<TokenTree>(next()));
+    auto result = make_shared<aux::ir::syntax_tree::IdentifierTermListTree>();
+    result->addIdentifier(
+            make_shared<aux::ir::syntax_tree::IdentifierTermTree>(
+                    static_pointer_cast<TokenIdentifier>(next())
+            )
+    );
 
     while (peek()->getRawValue() == *Operator::COMMA) {
         skipToken();
-
-        if (peek()->getType() == TokenType::IDENTIFIER) {
-            result->pushBack(make_shared<TokenTree>(next()));
-        } else if (parseAdditionalDotDotDot && peek()->getRawValue() == *Operator::DOT_DOT_DOT) {
-            result->pushBack(make_shared<TokenTree>(TokenTree::Type::PARAMETER_LIST, next()));
-        } else {
-            checkNextTokenIn({*Operator::DOT_DOT_DOT, *TokenType::IDENTIFIER}, STATEMENT_ERROR);
+        if (allowTrailingComma && peek()->getType() != ir::tokens::TokenType::IDENTIFIER) {
+            break;
         }
+
+        checkNextTokenTypeEquals(TokenType::IDENTIFIER, STATEMENT_ERROR);
+        result->addIdentifier(
+                make_shared<aux::ir::syntax_tree::IdentifierTermTree>(
+                        static_pointer_cast<TokenIdentifier>(next())
+                )
+        );
     }
 
     return result;
 }
 
-shared_ptr<TokenTree> Parser::parseAttribute() {
+shared_ptr<aux::ir::syntax_tree::AttributeTree> Parser::parseAttribute() {
     LOG(INFO) << "Started Parsing Attribute from " + peek()->getRawValue();
     if (peek()->getRawValue() == *Operator::LESS_THAN) {
         skipToken();
         checkNextTokenTypeEquals(TokenType::IDENTIFIER, STATEMENT_ERROR);
-        auto result = make_shared<TokenTree>(TokenTree::Type::ATTRIBUTE, next());
-        checkNextTokenEquals(*Operator::GREATER_THAN, STATEMENT_ERROR);
-        skipToken();
+        auto result = make_shared<aux::ir::syntax_tree::AttributeTree>(
+                static_pointer_cast<TokenIdentifier>(next())
+        );
+        checkNextTokenEquals(*Operator::GREATER_THAN, STATEMENT_ERROR), skipToken();
         return result;
     }
-    return {nullptr};
+    return nullptr;
 }
 
-shared_ptr<ListTree> Parser::parseExprList() {
-    auto expList = make_shared<ListTree>(ListTree::Type::EXPRESSION_LIST);
+shared_ptr<aux::ir::syntax_tree::ExpressionListTree> Parser::parseExprList() {
+    auto expList = make_shared<aux::ir::syntax_tree::ExpressionListTree>();
 
-    shared_ptr<BaseTree> exp = parseExpr();
+    shared_ptr<aux::ir::syntax_tree::ExpressionTree> exp = parseExpr();
     while (true) {
-        expList->pushBack(exp);
+        expList->addExpression(exp);
         if (peek()->getRawValue() == *Operator::COMMA) {
-            skipToken();
+            auto comma = static_pointer_cast<TokenOperator>(next());
             exp = parseExpr();
             if (!exp) {
-                throw ParsingException::expressionErrorBuilder()
-                        .addExpected("<, Expression>")
-                        .withActual("<, None>")
-                        .withSpan(peek()->getSpan())
-                        .build();
+                throwInvalidBinaryExpressionException(comma);
             }
         } else {
             break;
@@ -578,93 +620,62 @@ shared_ptr<ListTree> Parser::parseExprList() {
     return expList;
 }
 
-shared_ptr<BaseTree> Parser::parseExpr() {
+shared_ptr<aux::ir::syntax_tree::ExpressionTree> Parser::parseExpr() {
     LOG(INFO) << "Started Parsing Expression from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     if (peek()->getRawValue() == *Operator::DOT_DOT_DOT) {
-        return make_shared<TokenTree>(next());
+        return make_shared<aux::ir::syntax_tree::KeywordTermTree>(
+                static_pointer_cast<TokenKeyword>(next())
+        );
     } else if (peek()->getRawValue() == *Keyword::FUNCTION) {
         skipToken();
-        auto functionDef = parseFunctionBody();
-        if (functionDef) {
-            return functionDef;
+        if (auto functionDef = parseFunctionBody()) {
+            return make_shared<aux::ir::syntax_tree::FunctionDefinitionTree>(functionDef);
         }
     } else if (peek()->getRawValue() == *Operator::LEFT_CURLY_BRACE) {
-        auto tableConstructor = parseTableConstructor();
-        if (tableConstructor) {
-            return tableConstructor;
-        }
+        return parseTableConstructor();
     } else {
-        auto arlExpr = parseArlExpr();
-        if (arlExpr) {
-            return arlExpr;
-        }
+        return parseArlExpr();
     }
 
-    return {nullptr};
+    return nullptr;
 }
 
-shared_ptr<PrefixExprTree> Parser::parseFunctionCall() {
-    LOG(INFO) << "Started Parsing Function Call from " + peek()->getRawValue() << " at : " << peek()->getSpan();
-    auto prefixExpr = parsePrefixExpr();
-
-    auto &suffixes = prefixExpr->suffixes->trees;
-    if (suffixes.empty()) {
-        return {nullptr};
-    }
-
-    auto &lastSuffix = suffixes[suffixes.size() - 1];
-    if (dynamic_pointer_cast<FunctionCallSuffixTree>(lastSuffix)) {
-        return prefixExpr;
-    } else {
-        throw ParsingException::expressionErrorBuilder()
-                .addExpected("(<List of Arguments>)")
-                .withActual(lastSuffix->getPrintValue()) // todo: change?
-                        // todo: add Span
-                .build();
-    }
-
-}
-
-shared_ptr<PrefixExprTree> Parser::parsePrefixExpr() {
+shared_ptr<aux::ir::syntax_tree::PrefixExpressionTermTree> Parser::parsePrefixExpr() {
     LOG(INFO) << "Started Parsing Prefix Expression from " + peek()->getRawValue() << " at : " << peek()->getSpan();
-    auto token = peek();
-    shared_ptr<BaseTree> expression{nullptr};
-    if (token->getRawValue() == *Operator::LEFT_PARENTHESIS) {
-        token = next();
-        expression = parseExpr();
-        checkNextTokenEquals(*Operator::RIGHT_PARENTHESIS);
+    shared_ptr<aux::ir::syntax_tree::ExpressionTree> expression;
+
+    if (peek()->getRawValue() == *Operator::LEFT_PARENTHESIS) {
         skipToken();
+        expression = parseExpr();
+        checkNextTokenEquals(*Operator::RIGHT_PARENTHESIS), skipToken();
+    } else if (peek()->getType() == ir::tokens::TokenType::IDENTIFIER) {
+        expression = make_shared<aux::ir::syntax_tree::IdentifierTermTree>(
+                static_pointer_cast<TokenIdentifier>(next())
+        );
     } else {
-        if (token->getType() != ir::tokens::TokenType::IDENTIFIER) {
-            return {nullptr};
-        }
-        token = next();
+        return nullptr;
     }
 
-    auto suffixes = make_shared<ListTree>(ListTree::Type::PE_SUFFIX_LIST);
+    auto result = make_shared<aux::ir::syntax_tree::PrefixExpressionTermTree>(expression);
     while (true) {
         auto peTree = parsePrefixExprSuffix();
         if (peTree) {
-            suffixes->pushBack(peTree);
+            result->addPrefixExpressionSuffix(peTree);
         } else {
             auto funcCall = parseFuncCallSuffix();
             if (funcCall) {
-                suffixes->pushBack(funcCall);
+                result->addPrefixExpressionSuffix(funcCall);
             } else {
                 break;
             }
         }
     }
 
-    if (expression) {
-        return make_shared<PrefixExprTree>(expression, suffixes);
-    } else {
-        return make_shared<PrefixExprTree>(static_pointer_cast<TokenIdentifier>(token), suffixes);
-    }
+    return result;
 }
 
-shared_ptr<ListTree> Parser::parseVarList() {
+shared_ptr<aux::ir::syntax_tree::VariableListTree> Parser::parseVarList() {
     LOG(INFO) << "Started Parsing Variable List from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto var = parseVariable();
@@ -672,10 +683,11 @@ shared_ptr<ListTree> Parser::parseVarList() {
         return nullptr;
     }
 
-    auto result = make_shared<ListTree>(ListTree::Type::VARIABLE_LIST);
-    result->pushBack(var);
+    shared_ptr<aux::ir::syntax_tree::VariableListTree> result = make_shared<aux::ir::syntax_tree::VariableListTree>();
+    result->addVariable(var);
     while (peek()->getRawValue() == *Operator::COMMA) {
-        var = (skipToken(), parseVariable());
+        skipToken();
+        var = parseVariable();
         if (!var) {
             throw ParsingException::expressionErrorBuilder()
                     .addExpected("Another <VariableReference> after ,")
@@ -683,227 +695,198 @@ shared_ptr<ListTree> Parser::parseVarList() {
                     .withSpan(peek()->getSpan())
                     .build();
         }
-        result->pushBack(var);
+        result->addVariable(var);
     }
 
     return result;
 }
 
-shared_ptr<VariableTree> Parser::parseVariable() {
+shared_ptr<aux::ir::syntax_tree::VariableTree> Parser::parseVariable() {
     LOG(INFO) << "Started Parsing Variable from " + peek()->getRawValue() << " at : " << peek()->getSpan();
-    auto token = peek();
-    shared_ptr<BaseTree> expression{nullptr};
 
-    if (token->getRawValue() == *Operator::LEFT_PARENTHESIS) {
-        expression = parseExpr();
-        checkNextTokenEquals(*Operator::RIGHT_PARENTHESIS);
-        skipToken();
-    } else {
-        if (token->getType() != TokenType::IDENTIFIER) {
-            return {nullptr};
-        }
-        token = next();
+    if (peek()->getType() != TokenType::IDENTIFIER) {
+        return nullptr;
     }
 
-    auto suffix = make_shared<ListTree>(ListTree::Type::PE_SUFFIX_LIST);
-    shared_ptr<ExprSuffixTree> peTree;
+    auto identifier = make_shared<aux::ir::syntax_tree::IdentifierTermTree>(
+            dynamic_pointer_cast<TokenIdentifier>(next())
+    );
+
+    auto result = make_shared<aux::ir::syntax_tree::VariableTree>(identifier);
+    shared_ptr<aux::ir::syntax_tree::PrefixExpressionSuffixTree> peTree;
     while ((peTree = parsePrefixExprSuffix())) {
-        suffix->pushBack(peTree);
+        result->addPrefixExprSuffix(peTree);
     }
 
-    if (expression) {
-        return make_shared<VariableTree>(expression, suffix);
-    } else {
-        return make_shared<VariableTree>(static_pointer_cast<TokenIdentifier>(token), suffix);
-    }
+    return result;
 }
 
-shared_ptr<ExprSuffixTree> Parser::parsePrefixExprSuffix() {
+shared_ptr<aux::ir::syntax_tree::PrefixExpressionSuffixTree> Parser::parsePrefixExprSuffix() {
     LOG(INFO) << "Started Parsing Prefix Expression Suffix from " + peek()->getRawValue() << " at : "
               << peek()->getSpan();
+
     if (peek()->getRawValue() == *Operator::LEFT_BRACKET) {
         skipToken();
         auto exp = parseExpr();
         checkNextTokenEquals(*Operator::RIGHT_BRACKET);
         skipToken();
-        return make_shared<ExprSuffixTree>(exp);
+        return make_shared<aux::ir::syntax_tree::TableFieldAccessSuffixTree>(exp);
     } else if (peek()->getRawValue() == *Operator::DOT) {
         skipToken();
         checkNextTokenTypeEquals(TokenType::IDENTIFIER);
-        return make_shared<ExprSuffixTree>(static_pointer_cast<TokenIdentifier>(next()));
+
+        return make_shared<aux::ir::syntax_tree::StructAccessSuffixTree>(
+                static_pointer_cast<TokenIdentifier>(next())
+        );
     }
 
-    return {nullptr};
+    return nullptr;
 }
 
-shared_ptr<FunctionCallSuffixTree> Parser::parseFuncCallSuffix() {
+shared_ptr<aux::ir::syntax_tree::FunctionCallSuffixTree> Parser::parseFuncCallSuffix() {
     LOG(INFO) << "Started Parsing Function Call Suffix from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     if (peek()->getType() == TokenType::EOF_OR_UNDEFINED) {
-        return {nullptr};
+        return nullptr;
     }
 
-    shared_ptr<Token> identifier;
+    shared_ptr<aux::ir::syntax_tree::TokenIdentifier> identifier{nullptr};
     if (peek()->getRawValue() == *Operator::COLON) {
         skipToken();
         checkNextTokenTypeEquals(TokenType::IDENTIFIER);
-        identifier = next();
+        identifier = static_pointer_cast<TokenIdentifier>(next());
     }
 
     auto args = parseArgs();
     if (args) {
-        return make_shared<FunctionCallSuffixTree>(args, static_pointer_cast<TokenIdentifier>(identifier));
+        return make_shared<aux::ir::syntax_tree::FunctionCallSuffixTree>(identifier, args);
     } else {
-        return {nullptr};
+        return nullptr;
     }
 }
 
-shared_ptr<ArgsTree> Parser::parseArgs() {
+shared_ptr<aux::ir::syntax_tree::ArgumentsTree> Parser::parseArgs() {
     LOG(INFO) << "Started Parsing Args from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     if (peek()->getRawValue() == *Operator::LEFT_PARENTHESIS) {
         skipToken();
         auto result = parseExprList();
-        checkNextTokenEquals(*Operator::RIGHT_PARENTHESIS);
-        skipToken();
-        return make_shared<ArgsTree>(result);
+        checkNextTokenEquals(*Operator::RIGHT_PARENTHESIS), skipToken();
+        return result;
     } else if (peek()->getType() == TokenType::STRING_LITERAL) {
-        return make_shared<ArgsTree>(dynamic_pointer_cast<TokenStringLiteral>(next()));
+        return make_shared<aux::ir::syntax_tree::StringLiteralTermTree>(
+                static_pointer_cast<TokenStringLiteral>(next())
+        );
     } else {
-        auto tableConstructor = parseTableConstructor();
-        if (tableConstructor) {
-            return make_shared<ArgsTree>(tableConstructor);
-        } else {
-            return {nullptr};
-        }
+        return parseTableConstructor();
     }
 
 }
 
-shared_ptr<ListTree> Parser::parseTableConstructor() {
+shared_ptr<aux::ir::syntax_tree::TableConstructorTermTree> Parser::parseTableConstructor() {
     LOG(INFO) << "Started Parsing Table Constructor from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     if (peek()->getRawValue() == *Operator::LEFT_CURLY_BRACE) {
         skipToken();
 
         if (peek()->getRawValue() == *Operator::RIGHT_CURLY_BRACE) {
             skipToken();
-            return make_shared<ListTree>(ListTree::Type::TABLE_FIELD_LIST);
+            return make_shared<aux::ir::syntax_tree::TableConstructorTermTree>();
         }
 
         auto result = parseTableFieldList();
-        checkNextTokenEquals(*Operator::RIGHT_CURLY_BRACE);
-        skipToken();
+        checkNextTokenEquals(*Operator::RIGHT_CURLY_BRACE), skipToken();
         return result;
     }
 
-    return {nullptr};
+    return nullptr;
 }
 
-shared_ptr<ListTree> Parser::parseTableFieldList() {
+shared_ptr<aux::ir::syntax_tree::TableConstructorTermTree> Parser::parseTableFieldList() {
     LOG(INFO) << "Started Parsing Table Field List from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     static unordered_set<string> separators = {*Operator::COMMA, *Operator::SEMI_COLON};
 
-    auto result = make_shared<ListTree>(ListTree::Type::TABLE_FIELD_LIST);
-    result->pushBack(parseTableField());
+    shared_ptr<aux::ir::syntax_tree::TableConstructorTermTree> result = make_shared<aux::ir::syntax_tree::TableConstructorTermTree>();
+
+    result->addField(parseTableField());
     while (true) {
         if (separators.contains(peek()->getRawValue())) {
             skipToken();
+            if (peek()->getRawValue() == *Operator::RIGHT_CURLY_BRACE) {
+                break;
+            }
+
             auto field = parseTableField();
-            result->pushBack(field);
+            result->addField(field);
         } else {
             break;
         }
     }
 
-    if (separators.contains(peek()->getRawValue())) {
-        skipToken();
-    }
-
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseTableField() {
+shared_ptr<aux::ir::syntax_tree::TableFieldTermTree> Parser::parseTableField() {
     LOG(INFO) << "Started Parsing Table Field from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     if (peek()->getRawValue() == *Operator::LEFT_BRACKET) {
         skipToken();
+
         auto left = parseExpr();
 
-        checkNextTokenEquals(*Operator::RIGHT_BRACKET);
-        skipToken();
-        checkNextTokenEquals(*Operator::EQUAL);
+        checkNextTokenEquals(*Operator::RIGHT_BRACKET), skipToken();
+        checkNextTokenEquals(*Operator::EQUAL), skipToken();
 
-        auto opToken = next();
         auto right = parseExpr();
 
-        return make_shared<BinTree>(BinTree::Type::TABLE_FIELD_DECLARATION, left, right, opToken);
+        return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(left, right);
     } else if (peek()->getType() == TokenType::IDENTIFIER) {
-        shared_ptr<BaseTree> identifier = make_shared<TokenTree>(_scanner->next());
-        checkNextTokenEquals(*Operator::EQUAL);
-        auto op = next();
+        auto left = make_shared<aux::ir::syntax_tree::IdentifierTermTree>(
+                static_pointer_cast<TokenIdentifier>(next())
+        );
+
+        checkNextTokenEquals(*Operator::EQUAL), skipToken();
         auto right = parseExpr();
 
-        return make_shared<BinTree>(
-                BinTree::Type::TABLE_FIELD_DECLARATION,
-                identifier, right, op
-        );
+        return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(left, right);
     } else {
-        return make_shared<BinTree>(
-                BinTree::Type::TABLE_FIELD_DECLARATION,
-                parseExpr(), nullptr, nullptr
-        );
+        return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(parseExpr());
     }
 }
 
-shared_ptr<BinTree> Parser::parseArlExpr() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseArlExpr() {
     LOG(INFO) << "Started Parsing Logical Or Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto result = parseLogicalAndTerm();
     while (peek()->getRawValue() == *Keyword::OR) {
-        auto op = next();
-        auto right = parseLogicalAndTerm();
+        auto op = static_pointer_cast<TokenKeyword>(next());
+        auto right = parseRelationalTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::LogicalExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-
-shared_ptr<BinTree> Parser::parseLogicalAndTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseLogicalAndTerm() {
     LOG(INFO) << "Started Parsing Logical And Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto result = parseRelationalTerm();
     while (peek()->getRawValue() == *Keyword::AND) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenKeyword>(next());
         auto right = parseRelationalTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::LogicalExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseRelationalTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseRelationalTerm() {
     LOG(INFO) << "Started Parsing Relational Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     static unordered_set<string> relationalOperators = {
             *Operator::LESS_THAN, *Operator::GREATER_THAN, *Operator::LT_EQUAL,
@@ -912,199 +895,143 @@ shared_ptr<BinTree> Parser::parseRelationalTerm() {
 
     auto result = parseBitwiseOrTerm();
     while (relationalOperators.contains(peek()->getRawValue())) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseBitwiseOrTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseBitwiseOrTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseBitwiseOrTerm() {
     LOG(INFO) << "Started Parsing Bitwise Or Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto result = parseBitwiseXorTerm();
     while (peek()->getRawValue() == *Operator::VERTICAL_BAR) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseBitwiseXorTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseBitwiseXorTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseBitwiseXorTerm() {
     LOG(INFO) << "Started Parsing Bitwise Xor Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto result = parseBitwiseAndTerm();
     while (peek()->getRawValue() == *Operator::TILDA) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseBitwiseAndTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseBitwiseAndTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseBitwiseAndTerm() {
     LOG(INFO) << "Started Parsing Bitwise And Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto result = parseShiftedTerm();
     while (peek()->getRawValue() == *Operator::AMPERSAND) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseShiftedTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseShiftedTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseShiftedTerm() {
     LOG(INFO) << "Started Parsing Shifted Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     static unordered_set<string> shiftOperators = {*Operator::LT_LT, *Operator::GT_GT};
 
     auto result = parseStringConcatenationTerm();
     while (shiftOperators.contains(peek()->getRawValue())) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseStringConcatenationTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseStringConcatenationTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseStringConcatenationTerm() {
     LOG(INFO) << "Started Parsing Concatenation Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
 
     auto result = parseSummationTerm();
     while (peek()->getRawValue() == *Operator::DOT_DOT) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseSummationTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseSummationTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseSummationTerm() {
     LOG(INFO) << "Started Parsing Summation Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     static unordered_set<string> summationOperators = {*Operator::PLUS, *Operator::MINUS};
 
     auto result = parseProductTerm();
     while (summationOperators.contains(peek()->getRawValue())) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseProductTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
 
     return result;
 }
 
-shared_ptr<BinTree> Parser::parseProductTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseProductTerm() {
     LOG(INFO) << "Started Parsing Product Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     static unordered_set<string> productOperators = {
             *Operator::ASTERISK, *Operator::SLASH, *Operator::SLASH_SLASH, *Operator::PERCENT
     };
 
-    auto result = parseUnaryTerm();
+    shared_ptr<aux::ir::syntax_tree::TermTree> result = parseUnaryTerm();
     while (productOperators.contains(peek()->getRawValue())) {
-        auto op = next();
+        auto op = static_pointer_cast<TokenOperator>(next());
         auto right = parseUnaryTerm();
         if (right) {
-            result = make_shared<BinTree>(
-                    BinTree::Type::BINARY_OPERATION,
-                    result, right, op
-            );
+            result = make_shared<aux::ir::syntax_tree::BinaryExpressionTermTree>(result, right, op);
         } else {
-            throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
-                    .withSpan(op->getSpan())
-                    .build();
+            throwInvalidBinaryExpressionException(op);
         }
     }
     return result;
 
 }
 
-shared_ptr<BinTree> Parser::parseUnaryTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseUnaryTerm() {
     LOG(INFO) << "Started Parsing Unary Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     static unordered_set<string> unaryOperators = {
             *Keyword::NOT, *Operator::SHARP, *Operator::MINUS, *Operator::TILDA
@@ -1114,14 +1041,21 @@ shared_ptr<BinTree> Parser::parseUnaryTerm() {
         auto token = next();
         auto exponentTerm = parseExponentTerm();
         if (exponentTerm) {
-            return make_shared<BinTree>(
-                    BinTree::Type::UNARY_OPERATION,
-                    nullptr, exponentTerm, token
-            );
+            if (token->getType() == TokenType::KEYWORD) {
+                return make_shared<aux::ir::syntax_tree::UnaryTermTree>(
+                        static_pointer_cast<TokenKeyword>(token),
+                        exponentTerm
+                );
+            } else {
+                return make_shared<aux::ir::syntax_tree::UnaryTermTree>(
+                        static_pointer_cast<TokenOperator>(token),
+                        exponentTerm
+                );
+            }
         } else {
             throw ParsingException::expressionErrorBuilder()
-                    .addExpected("<Expression>")
-                    .withActual("<Undefined>")
+                    .addExpected(token->getRawValue() + " <Expression>")
+                    .withActual(token->getRawValue() + " <Empty>")
                     .withSpan(token->getSpan())
                     .build();
         }
@@ -1130,30 +1064,24 @@ shared_ptr<BinTree> Parser::parseUnaryTerm() {
     }
 }
 
-shared_ptr<BinTree> Parser::parseExponentTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseExponentTerm() {
     LOG(INFO) << "Started Parsing Exponent Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     auto left = parseTerm();
     if (!left) {
-        return {nullptr};
+        return nullptr;
     }
 
     if (peek()->getRawValue() == *Operator::CARET) {
-        auto caret = next();
+        skipToken();
         auto right = parseExponentTerm();
-        return make_shared<BinTree>(
-                BinTree::Type::BINARY_OPERATION,
-                left, right, caret
-        );
+        return make_shared<aux::ir::syntax_tree::ExponentTermTree>(left, right);
+    } else {
+        return left;
     }
-
-    return make_shared<BinTree>(
-            BinTree::Type::BINARY_OPERATION,
-            left, nullptr, nullptr
-    );
 
 }
 
-shared_ptr<TermTree> Parser::parseTerm() {
+shared_ptr<aux::ir::syntax_tree::TermTree> Parser::parseTerm() {
     LOG(INFO) << "Started Parsing Term from " + peek()->getRawValue() << " at : " << peek()->getSpan();
     static auto isTerminal = [](const shared_ptr<Token> &t) -> bool {
         static unordered_set<string> terminalKeywordsAndOperators = {
@@ -1170,14 +1098,35 @@ shared_ptr<TermTree> Parser::parseTerm() {
     };
 
     if (isTerminal(peek())) {
-        return make_shared<TermTree>(next());
-    } else {
-        auto prefixExpr = parsePrefixExpr();
-        if (prefixExpr) {
-            return make_shared<TermTree>(prefixExpr);
-        } else {
-            return {nullptr};
+        switch (peek()->getType()) {
+            case TokenType::KEYWORD:
+                return make_shared<aux::ir::syntax_tree::KeywordTermTree>(
+                        static_pointer_cast<TokenKeyword>(next())
+                );
+            case TokenType::NUMERIC_DECIMAL:
+                return make_shared<aux::ir::syntax_tree::IntegerTermTree>(
+                        static_pointer_cast<TokenDecimal>(next())
+                );
+            case TokenType::NUMERIC_HEX:
+                return make_shared<aux::ir::syntax_tree::IntegerTermTree>(
+                        static_pointer_cast<TokenHex>(next())
+                );
+            case TokenType::NUMERIC_DOUBLE:
+                return make_shared<aux::ir::syntax_tree::DoubleTermTree>(
+                        static_pointer_cast<TokenDouble>(next())
+                );
+            case TokenType::STRING_LITERAL:
+                return make_shared<aux::ir::syntax_tree::StringLiteralTermTree>(
+                        static_pointer_cast<TokenStringLiteral>(next())
+                );
+            default:
+                break;
         }
     }
 
+    if (auto prefixExpr = parsePrefixExpr()) {
+        return prefixExpr;
+    }
+
+    return nullptr;
 }

@@ -4,12 +4,12 @@
 
 #include "ModularScanner.h"
 
-#include "components/CommentsScanner.h"
-#include "components/OperatorScanner.h"
-#include "components/StringLiteralScanner.h"
-#include "components/IdentifierAndKeywordScanner.h"
-#include "components/NumericConstantsDFSAScanner.h"
-#include "../exception/ErrorMessages.h"
+#include "scanner/components/CommentsScanner.h"
+#include "scanner/components/OperatorScanner.h"
+#include "scanner/components/StringLiteralScanner.h"
+#include "scanner/components/IdentifierAndKeywordScanner.h"
+#include "scanner/components/NumericConstantsDFSAScanner.h"
+#include "exception/ErrorMessages.h"
 
 using namespace aux::scanner;
 using namespace aux::ir::tokens;
@@ -25,12 +25,13 @@ std::shared_ptr<Token> aux::scanner::ModularScanner::next() const {
         return peekToken;
     }
 
-    if (_stream.peek() == std::char_traits<char>::eof()) {
-        return std::make_shared<TokenEofOrUndefined>(constructSpan(_stream.getRow() + 1, _stream.getColumn() + 1));
-    }
 
     while (std::isspace(_stream.peek())) {
         _stream.get();
+    }
+
+    if (_stream.peek() == std::char_traits<char>::eof()) {
+        return std::make_shared<TokenEofOrUndefined>(constructSpan(_stream.getRow() + 1, _stream.getColumn() + 1));
     }
 
     char startingChar = _stream.peek();

@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <stdexcept>
-#include "../intermediate_representation/Token.h"
+#include "intermediate_representation/Token.h"
 
 namespace aux::exception {
 

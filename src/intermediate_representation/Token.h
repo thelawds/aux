@@ -180,7 +180,7 @@ namespace aux::ir::tokens {
     };
 
     struct TokenIdentifier : Token {
-        TokenIdentifier(std::string value, const Span &span);
+        explicit TokenIdentifier(std::string value, const Span &span = {0, 0});
 
         [[nodiscard]]
         TokenType getType() const override;
