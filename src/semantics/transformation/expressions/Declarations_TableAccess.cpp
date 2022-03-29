@@ -37,15 +37,14 @@ void AstToProgramTreeTransformationVisitor::visitParameterListTree(ParameterList
 }
 
 void AstToProgramTreeTransformationVisitor::visitTableConstructorTermTree(TableConstructorTermTree *tree) {
-    // todo: this implementation produces only empty table constructor
-
+    // Returns only empty table constructor. Fields are implemented during visiting assignment
     stackPush(
             std::make_shared<aux::ir::program_tree::expression::TableConstructorTerm>()
     );
 }
 
 void AstToProgramTreeTransformationVisitor::visitTableFieldTermTree(TableFieldTermTree *tree) {
-
+    // Unused. Fields are implemented during visiting assignment
 }
 
 /**

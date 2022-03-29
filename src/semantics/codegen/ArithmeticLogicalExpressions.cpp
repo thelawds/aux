@@ -116,11 +116,11 @@ void CodeGenerationVisitor::visitArithmeticExpression(ArithmeticExpression *expr
             result = builder->CreateFDiv(leftOperand, rightOperand);
             break;
         // todo: implement
+        case ir::program_tree::expression::ArithmeticExpression::EXPONENTIATION:
+            break;
         case ir::program_tree::expression::ArithmeticExpression::FLOOR_DIVISION:
             break;
         case ir::program_tree::expression::ArithmeticExpression::MODULO:
-            break;
-        case ir::program_tree::expression::ArithmeticExpression::EXPONENTIATION:
             break;
     }
 

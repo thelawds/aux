@@ -25,10 +25,10 @@
 -- x,y,z = "Hello", 32.3 - 7^2
 x, y, z = nil, true, false
 
-x = {}
+x = {10, 20, 30, 40, 50, structAccess = 60, [32-y] = 70}
 x[1] = 21
 x.Hello = 32 - y
-x.table = {}
+x.table = {10, 20, 30, 40, 50}
 x.table[0] = 3
 
 y, z = nil

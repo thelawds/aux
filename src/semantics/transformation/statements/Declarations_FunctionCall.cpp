@@ -58,38 +58,72 @@ void AstToProgramTreeTransformationVisitor::visitAttributeTree(AttributeTree *tr
 }
 
 void AstToProgramTreeTransformationVisitor::visitAssignmentTree(AssignmentTree *tree) {
-    std::vector<std::shared_ptr<aux::ir::program_tree::statement::VariableReferenceTree>> programTreeVariables;
-    std::vector<std::shared_ptr<aux::ir::program_tree::ExpressionTree>> programTreeExpressions;
+    auto resultAssignmentTree = std::make_shared<ir::program_tree::statement::AssignmentStatement>();
 
     auto astVariables = tree->variableList->variableTrees;
     auto astExpressions = tree->expressionList->expressions;
 
-    for (auto &variable: astVariables) {
-        programTreeVariables.push_back(
-                std::dynamic_pointer_cast<aux::ir::program_tree::statement::VariableReferenceTree>(
-                        visit(variable)
-                )
-        );
-    }
+    size_t idx, min_size = std::min(astVariables.size(), astExpressions.size());
+    for (idx = 0; idx < min_size; ++idx) {
+        auto &variableReference = astVariables[idx];
+        auto &expression = astExpressions[idx];
 
-    for (auto &expression: astExpressions) {
-        programTreeExpressions.push_back(
+        resultAssignmentTree->append(
+                std::dynamic_pointer_cast<aux::ir::program_tree::statement::VariableReferenceTree>(
+                        visit(variableReference)
+                ),
                 std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(
                         visit(expression)
                 )
         );
+
+        if (auto tableConstructorExpression = std::dynamic_pointer_cast<TableConstructorTermTree>(expression)) {
+            auto &fields = tableConstructorExpression->fields;
+            int fieldIndex = 1;
+
+            for (auto &field: fields) {
+                auto variableTreeForCurrentField = std::make_shared<VariableTree>(
+                        variableReference->identifier, variableReference->prefixExpressionSuffix
+                );
+                if (field->left) {
+                    if (auto identifierFieldLeft = std::dynamic_pointer_cast<IdentifierTermTree>(field->left)) {
+                        variableTreeForCurrentField->addPrefixExprSuffix(
+                                std::make_shared<StructAccessSuffixTree>(
+                                        std::make_shared<TokenIdentifier>(
+                                                identifierFieldLeft->value, identifierFieldLeft->span
+                                        )
+                                )
+                        );
+                    } else {
+                        variableTreeForCurrentField->addPrefixExprSuffix(
+                                std::make_shared<TableFieldAccessSuffixTree>(field->left)
+                        );
+                    }
+                } else {
+                    variableTreeForCurrentField->addPrefixExprSuffix(
+                            std::make_shared<IntegerTermTree>(fieldIndex)
+                    );
+                    ++fieldIndex;
+                }
+
+                resultAssignmentTree->append(
+                        std::dynamic_pointer_cast<aux::ir::program_tree::statement::VariableReferenceTree>(
+                                visit(variableTreeForCurrentField)
+                        ),
+                        std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(
+                                visit(field->right)
+                        )
+                );
+            }
+        }
     }
 
-    size_t idx = 0;
-    size_t minSize = std::min(programTreeVariables.size(), programTreeExpressions.size());
-    auto resultAssignmentTree = std::make_shared<ir::program_tree::statement::AssignmentStatement>();
-    while (idx < minSize) {
-        resultAssignmentTree->append(programTreeVariables[idx], programTreeExpressions[idx]);
-        ++idx;
-    }
-
-    while (idx < programTreeVariables.size()) {
-        resultAssignmentTree->append(programTreeVariables[idx]);
+    while (idx < astVariables.size()) {
+        resultAssignmentTree->append(
+                std::dynamic_pointer_cast<aux::ir::program_tree::statement::VariableReferenceTree>(
+                        visit(astVariables[idx])
+                )
+        );
         ++idx;
     }
 
