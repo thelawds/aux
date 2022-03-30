@@ -33,17 +33,18 @@ CodeGenerationVisitor::CodeGenerationVisitor()
     StructType::create(*context, {Type::getInt32Ty(*context), Type::getInt8PtrTy(*context)}, "T");
 
     std::vector<FunctionDefinition> stdlibFunctionDefinitions = {
-            {"__getTable__",      getTypeT(),                   {}},
-            {"__getTableField__", getTypeT()->getPointerTo(),   {getTypeT()->getPointerTo(), getTypeT()}},
-            {"__putField__",      Type::getVoidTy(*context),    {getTypeT(),                 getTypeT(), getTypeT()}},
-            {"__getBoolean__",    getTypeT(),                   {Type::getInt1Ty(*context)}},
-            {"__getInteger__",    getTypeT(),                   {Type::getInt64Ty(*context)}},
-            {"__getFloat__",      getTypeT(),                   {Type::getDoubleTy(*context)}},
-            {"__getString__",     getTypeT(),                   {Type::getInt8PtrTy(*context)}},
-            {"__toFloat__",       Type::getDoubleTy(*context),  {getTypeT()}},
-            {"__toString__",      Type::getInt8PtrTy(*context), {getTypeT()}},
-            {"__print__",         Type::getVoidTy(*context),    {getTypeT()}},
-            {"__read__",          getTypeT(),                   {}}
+            {"__getTable__",         getTypeT(),                   {}},
+            {"__getTableFieldPtr__", getTypeT()->getPointerTo(),   {getTypeT()->getPointerTo(), getTypeT()}},
+            {"__getTableFieldValue__", getTypeT(),   {getTypeT(), getTypeT()}},
+            {"__putField__",         Type::getVoidTy(*context),    {getTypeT(), getTypeT(), getTypeT()}},
+            {"__getBoolean__",       getTypeT(),                   {Type::getInt1Ty(*context)}},
+            {"__getInteger__",       getTypeT(),                   {Type::getInt64Ty(*context)}},
+            {"__getFloat__",         getTypeT(),                   {Type::getDoubleTy(*context)}},
+            {"__getString__",        getTypeT(),                   {Type::getInt8PtrTy(*context)}},
+            {"__toFloat__",          Type::getDoubleTy(*context),  {getTypeT()}},
+            {"__toString__",         Type::getInt8PtrTy(*context), {getTypeT()}},
+            {"__print__",            Type::getVoidTy(*context),    {getTypeT()}},
+            {"__read__",             getTypeT(),                   {}}
     };
 
     for (auto &[name, returnType, argTypes]: stdlibFunctionDefinitions) {
@@ -165,5 +166,6 @@ Value *CodeGenerationVisitor::visit(const std::shared_ptr<ProgramTree> &abstract
 llvm::StructType *CodeGenerationVisitor::getTypeT() {
     return StructType::getTypeByName(*context, "T");
 }
+
 
 

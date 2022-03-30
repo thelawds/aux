@@ -27,16 +27,27 @@ void CodeGenerationVisitor::visitTableReferenceTree(aux::ir::program_tree::state
     auto expression = visit(tree->expression);
     stackPush(
             builder->CreateCall(
-                    module->getFunction("__getTableField__"),
+                    module->getFunction("__getTableFieldPtr__"),
                     {tableReference, expression}
             )
     );
 }
 
 void CodeGenerationVisitor::visitAssignmentStatement(AssignmentStatement *assignmentStatement) {
+    std::vector<std::pair<Value *, Value *>> resultAssignments;
     for (auto &[variable, expression]: assignmentStatement->assignments) {
         auto *variableReference = visit(variable);
         auto *value = visit(expression);
+
+        if (std::dynamic_pointer_cast<aux::ir::program_tree::expression::TableConstructorTerm>(expression)) {
+            builder->CreateStore(value, variableReference);
+        } else {
+            resultAssignments.emplace_back(variableReference, value);
+        }
+
+    }
+
+    for (auto &[variableReference, value]: resultAssignments) {
         builder->CreateStore(value, variableReference);
     }
 }

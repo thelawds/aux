@@ -62,7 +62,7 @@ std::string __fromStringForTable__(std::string str){
     }
 }
 
-extern "C" DLLEXPORT T* __getTableField__(T& table, T fieldReference){
+extern "C" DLLEXPORT T* __getTableFieldPtr__(T& table, T fieldReference){
 
     if (table.type != TABLE) {
         throw std::logic_error("Error accessing with []. Not a table"); // todo
@@ -71,13 +71,15 @@ extern "C" DLLEXPORT T* __getTableField__(T& table, T fieldReference){
     TableType *internalTable = (TableType *) table.value;
     std::string reference = __toStringForTable__(fieldReference);
 
-
-
     if (internalTable->find(reference) == internalTable->end()) {
         (*internalTable)[reference] = {NIL, nullptr};
     }
 
     return &internalTable->at(reference);
+}
+
+extern "C" DLLEXPORT T __getTableFieldValue__(T table, T fieldReference) {
+    return *__getTableFieldPtr__(table, fieldReference);
 }
 
 extern "C" DLLEXPORT void __putField__(T table, T fieldReference, T fieldValue){

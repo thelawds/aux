@@ -101,3 +101,22 @@ void TableReferenceTree::accept(aux::semantics::ProgramTreeVisitor *visitor) {
 void TableConstructorTerm::accept(aux::semantics::ProgramTreeVisitor *visitor) {
     visitor->visitTableConstructorTerm(this);
 }
+
+TableAccessTerm::TableAccessTerm(
+        const shared_ptr<ExpressionTree> &parent,
+        const shared_ptr<ExpressionTree> &referencingExpression
+) : parent(parent), referencingExpression(referencingExpression) {}
+
+void TableAccessTerm::accept(aux::semantics::ProgramTreeVisitor *visitor) {
+    visitor->visitTableAccessTerm(this);
+}
+
+FunctionCallTerm::FunctionCallTerm(const shared_ptr<ExpressionTree> &parent) : parent(parent) {}
+
+void FunctionCallTerm::accept(aux::semantics::ProgramTreeVisitor *visitor) {
+    // todo
+}
+
+void FunctionCallTerm::append(const std::shared_ptr<ExpressionTree> &arg) {
+    arguments.push_back(arg);
+}

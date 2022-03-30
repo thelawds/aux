@@ -11,6 +11,7 @@ namespace aux::ir::program_tree {
         struct NilTerm;
         struct ExpressionTerm;
         struct TableConstructorTerm;
+        struct TableAccessTerm;
         struct ArithmeticExpression;
     }
 
@@ -36,6 +37,8 @@ namespace aux::semantics {
         virtual void visitExpressionTerm(aux::ir::program_tree::expression::ExpressionTerm *) = 0;
 
         virtual void visitTableConstructorTerm(aux::ir::program_tree::expression::TableConstructorTerm *) = 0;
+
+        virtual void visitTableAccessTerm(aux::ir::program_tree::expression::TableAccessTerm *) = 0;
 
         virtual void visitArithmeticExpression(aux::ir::program_tree::expression::ArithmeticExpression *) = 0;
 

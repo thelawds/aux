@@ -49,6 +49,8 @@ namespace aux::semantics::codegen {
 
         void visitTableConstructorTerm(aux::ir::program_tree::expression::TableConstructorTerm *term) override;
 
+        void visitTableAccessTerm(aux::ir::program_tree::expression::TableAccessTerm *term) override;
+
         void visitArithmeticExpression(aux::ir::program_tree::expression::ArithmeticExpression *expression) override;
 
         /**

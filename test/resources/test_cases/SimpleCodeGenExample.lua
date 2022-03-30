@@ -24,12 +24,13 @@
 
 -- x,y,z = "Hello", 32.3 - 7^2
 x, y, z = nil, true, false
+foo = 223
 
-x = {10, 20, 30, 40, 50, structAccess = 60, [32-y] = 70}
+x = {10, 20, 30, 40, 50, structAccess = 60, [32-foo] = 70}
 x[1] = 21
 x.Hello = 32 - y
 x.table = {10, 20, 30, 40, 50}
-x.table[0] = 3
+x.table[0] = x[2]
 
 y, z = nil
 
@@ -42,3 +43,8 @@ a = 21 + 93
 b = 3.0 - 1.23 + a * 7
 b = z
 a = 0xABC - a*a*a 
+
+a1, a2, a3 = "a1", "a2", "a3"
+a1, a2, a3 = a3, a2, a1
+
+a4 = x.table[4] - x.table[3] + x[1]

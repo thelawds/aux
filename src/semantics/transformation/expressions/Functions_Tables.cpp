@@ -54,7 +54,47 @@ void AstToProgramTreeTransformationVisitor::visitTableFieldTermTree(TableFieldTe
  */
 
 void AstToProgramTreeTransformationVisitor::visitPrefixExpressionTermTree(PrefixExpressionTermTree *tree) {
-    tree->expressionOrIdentifier->accept(this); // todo: now only works for references to variables
+    auto result = std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(
+            visit(tree->expressionOrIdentifier)
+    );
+
+    for (auto &suf: tree->peSuffixTrees) {
+
+        if (auto funcCallSuffix = std::dynamic_pointer_cast<FunctionCallSuffixTree>(suf)) {
+            // todo: now function:identifier(args) is ignored and read as function(args)
+
+            auto &arguments = funcCallSuffix->arguments;
+            auto newResult = std::make_shared<aux::ir::program_tree::expression::FunctionCallTerm>(result);
+
+            bool isSingleArgument = std::dynamic_pointer_cast<StringLiteralTermTree>(arguments)
+                                    || std::dynamic_pointer_cast<TableConstructorTermTree>(arguments);
+
+            if (isSingleArgument) {
+                newResult->append(
+                        std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(
+                                visit(arguments)
+                        )
+                );
+            } else if (auto argumentsList = std::dynamic_pointer_cast<ExpressionListTree>(arguments)) {
+                for (auto &arg: argumentsList->expressions) {
+                    newResult->append(
+                            std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(
+                                    visit(arg)
+                            )
+                    );
+                }
+            }
+
+            result = newResult;
+        } else {
+            auto programTreeSuffix = std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(visit(suf));
+            result = std::make_shared<aux::ir::program_tree::expression::TableAccessTerm>(
+                    result, programTreeSuffix
+            );
+        }
+    }
+
+    stackPush(result);
 }
 
 void AstToProgramTreeTransformationVisitor::visitFunctionCallSuffixTree(FunctionCallSuffixTree *tree) {

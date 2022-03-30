@@ -85,6 +85,17 @@ void CodeGenerationVisitor::visitExpressionTerm(ExpressionTerm *term) {
 
 }
 
+void CodeGenerationVisitor::visitTableAccessTerm(aux::ir::program_tree::expression::TableAccessTerm *term) {
+    auto parentReference = visit(term->parent);
+    auto expression = visit(term->referencingExpression);
+    stackPush(
+            builder->CreateCall(
+                    module->getFunction("__getTableFieldValue__"),
+                    {parentReference, expression}
+            )
+    );
+}
+
 void CodeGenerationVisitor::visitTableConstructorTerm(TableConstructorTerm *term) {
     stackPush(
             builder->CreateCall(

@@ -58,6 +58,30 @@ namespace aux::ir::program_tree {
 
         };
 
+        struct TableAccessTerm : ExpressionTree {
+            std::shared_ptr<ExpressionTree> parent;
+            std::shared_ptr<ExpressionTree> referencingExpression;
+
+            TableAccessTerm(
+                    const std::shared_ptr<ExpressionTree> &parent,
+                    const std::shared_ptr<ExpressionTree> &referencingExpression
+            );
+
+            void accept(aux::semantics::ProgramTreeVisitor *visitor) override;
+        };
+
+        struct FunctionCallTerm : ExpressionTree {
+            std::shared_ptr<ExpressionTree> parent;
+            std::vector<std::shared_ptr<ExpressionTree>> arguments;
+
+            explicit FunctionCallTerm(const std::shared_ptr<ExpressionTree> &parent);
+
+            void append(const std::shared_ptr<ExpressionTree> &arg);
+
+            void accept(aux::semantics::ProgramTreeVisitor *visitor) override;
+
+        };
+
         struct ArithmeticExpression : ExpressionTree {
 
             enum ArithmeticOperation {

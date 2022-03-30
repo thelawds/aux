@@ -13,9 +13,9 @@ using namespace aux::semantics;
 using namespace aux::ir::syntax_tree;
 
 /**
- * ----------------------------------              \n
- * \b Handles <i> Assignment, Function Call </i>   \n
- * ----------------------------------
+ * -------------------              \n
+ * \b Handles <i> Assignment </i>   \n
+ * -------------------
  */
 
 void AstToProgramTreeTransformationVisitor::visitAttributeIdentifierListTree(AttributeIdentifierListTree *tree) {
@@ -50,7 +50,7 @@ void AstToProgramTreeTransformationVisitor::visitVariableTree(VariableTree *tree
 }
 
 void AstToProgramTreeTransformationVisitor::visitVariableListTree(VariableListTree *tree) {
-
+    // Unused
 }
 
 void AstToProgramTreeTransformationVisitor::visitAttributeTree(AttributeTree *tree) {
