@@ -34,7 +34,7 @@ void CodeGenerationVisitor::visitTableReferenceTree(aux::ir::program_tree::state
 }
 
 void CodeGenerationVisitor::visitAssignmentStatement(AssignmentStatement *assignmentStatement) {
-    std::vector<std::pair<Value *, Value *>> resultAssignments;
+    std::vector<std::pair<Value *, Value *>> valuesToVariableReferences;
     for (auto &[variable, expression]: assignmentStatement->assignments) {
         auto *variableReference = visit(variable);
         auto *value = visit(expression);
@@ -42,12 +42,12 @@ void CodeGenerationVisitor::visitAssignmentStatement(AssignmentStatement *assign
         if (std::dynamic_pointer_cast<aux::ir::program_tree::expression::TableConstructorTerm>(expression)) {
             builder->CreateStore(value, variableReference);
         } else {
-            resultAssignments.emplace_back(variableReference, value);
+            valuesToVariableReferences.emplace_back(value, variableReference);
         }
 
     }
 
-    for (auto &[variableReference, value]: resultAssignments) {
+    for (auto &[value, variableReference]: valuesToVariableReferences) {
         builder->CreateStore(value, variableReference);
     }
 }

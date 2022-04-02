@@ -87,9 +87,8 @@ void AstToProgramTreeTransformationVisitor::visitPrefixExpressionTermTree(Prefix
 
             result = newResult;
         } else {
-            auto programTreeSuffix = std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(visit(suf));
             result = std::make_shared<aux::ir::program_tree::expression::TableAccessTerm>(
-                    result, programTreeSuffix
+                    result, std::dynamic_pointer_cast<aux::ir::program_tree::ExpressionTree>(visit(suf))
             );
         }
     }

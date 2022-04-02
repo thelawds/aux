@@ -33,6 +33,11 @@ CodeGenerationVisitor::CodeGenerationVisitor()
     StructType::create(*context, {Type::getInt32Ty(*context), Type::getInt8PtrTy(*context)}, "T");
 
     std::vector<FunctionDefinition> stdlibFunctionDefinitions = {
+            // Standard library functions //todo: rename to libAuxStd
+            {"read", getTypeT(), {}},
+            {"math_sqrt", getTypeT(), {getTypeT()}},
+
+            // Runtime support functions: //todo: rename to libAuxRuntime
             {"__getTable__",         getTypeT(),                   {}},
             {"__getTableFieldPtr__", getTypeT()->getPointerTo(),   {getTypeT()->getPointerTo(), getTypeT()}},
             {"__getTableFieldValue__", getTypeT(),   {getTypeT(), getTypeT()}},
@@ -107,7 +112,7 @@ void CodeGenerationVisitor::generateLLVMIr(const std::shared_ptr<ProgramTree> &p
             "/home/miserable/Documents/Compiler Construction/aux/cmake-build-debug/SimpleCodeGen.ll",
             errorCode
     );
-    module->print(outs(), nullptr, false, true);
+//    module->print(outs(), nullptr, false, true);
     module->print(out, nullptr, false, true);
 
     // todo: code generation
@@ -133,7 +138,7 @@ void CodeGenerationVisitor::generateLLVMIr(const std::shared_ptr<ProgramTree> &p
 
     module->setDataLayout(targetMachine->createDataLayout());
 
-    auto filename = "Codegen.o";
+    auto filename = "a.out";
     raw_fd_ostream dest(filename, errorCode, sys::fs::OF_None);
 
     legacy::PassManager passManager;
@@ -166,6 +171,3 @@ Value *CodeGenerationVisitor::visit(const std::shared_ptr<ProgramTree> &abstract
 llvm::StructType *CodeGenerationVisitor::getTypeT() {
     return StructType::getTypeByName(*context, "T");
 }
-
-
-

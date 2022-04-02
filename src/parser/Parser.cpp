@@ -838,17 +838,21 @@ shared_ptr<aux::ir::syntax_tree::TableFieldTermTree> Parser::parseTableField() {
         auto right = parseExpr();
 
         return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(left, right);
-    } else if (peek()->getType() == TokenType::IDENTIFIER) {
-        auto left = make_shared<aux::ir::syntax_tree::IdentifierTermTree>(
-                static_pointer_cast<TokenIdentifier>(next())
-        );
-
-        checkNextTokenEquals(*Operator::EQUAL), skipToken();
-        auto right = parseExpr();
-
-        return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(left, right);
     } else {
-        return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(parseExpr());
+        auto expr = parseExpr();
+        if (peek()->getRawValue() == *Operator::EQUAL) {
+            auto left = dynamic_pointer_cast<aux::ir::syntax_tree::IdentifierTermTree>(
+                    dynamic_pointer_cast<aux::ir::syntax_tree::PrefixExpressionTermTree>(expr)->expressionOrIdentifier
+            );
+
+            checkNextTokenEquals(*Operator::EQUAL);
+            skipToken();
+
+            auto right = parseExpr();
+            return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(left, right);
+        } else {
+            return make_shared<aux::ir::syntax_tree::TableFieldTermTree>(expr);
+        }
     }
 }
 

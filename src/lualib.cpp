@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <string>
 #include <stdexcept>
+#include <cmath>
 #include <map>
 
 #ifdef _WIN32
@@ -39,7 +40,7 @@ extern "C" DLLEXPORT T __getTable__() {
     return {TABLE, (char *) table};
 }
 
-std::string __toStringForTable__(T value){
+std::string __toStringForTable__(T value) {
     switch (value.type) {
         case INTEGER:
             return "INT_" + __toString__(value);
@@ -52,7 +53,7 @@ std::string __toStringForTable__(T value){
     }
 }
 
-std::string __fromStringForTable__(std::string str){
+std::string __fromStringForTable__(std::string str) {
     if (str.substr(0, 4) == "INT_") {
         return str.substr(4);
     } else if (str.substr(0, 7) == "STRING_") {
@@ -62,7 +63,7 @@ std::string __fromStringForTable__(std::string str){
     }
 }
 
-extern "C" DLLEXPORT T* __getTableFieldPtr__(T& table, T fieldReference){
+extern "C" DLLEXPORT T *__getTableFieldPtr__(T &table, T fieldReference) {
 
     if (table.type != TABLE) {
         throw std::logic_error("Error accessing with []. Not a table"); // todo
@@ -82,7 +83,7 @@ extern "C" DLLEXPORT T __getTableFieldValue__(T table, T fieldReference) {
     return *__getTableFieldPtr__(table, fieldReference);
 }
 
-extern "C" DLLEXPORT void __putField__(T table, T fieldReference, T fieldValue){
+extern "C" DLLEXPORT void __putField__(T table, T fieldReference, T fieldValue) {
     if (table.type != TABLE) {
         throw std::logic_error("Error accessing with []. Not a table"); // todo
     }
@@ -108,7 +109,7 @@ extern "C" DLLEXPORT T __getFloat__(double value) {
     return {FLOAT, (char *) valPtr};
 }
 
-extern "C" DLLEXPORT T __getString__(char *string){
+extern "C" DLLEXPORT T __getString__(char *string) {
     return {STRING, string};
 }
 
@@ -137,7 +138,9 @@ extern "C++" DLLEXPORT std::string __toString__(T value) {
         case NIL:
             return "nil";
         default:
-            throw std::logic_error("Conversion from struct to string can not be performed"); // todo: make structs printable
+            throw std::logic_error(
+                    "Conversion from struct to string can not be performed"
+            ); // todo: make structs printable
     }
 }
 
@@ -179,11 +182,16 @@ extern "C" DLLEXPORT void __print__(T string) {
     }
 }
 
-extern "C" DLLEXPORT T __read__() {
-    double *val = new double(0.0);
-    fscanf(stdin, "%lg", val);
+extern "C" DLLEXPORT T read() {
+    char *value = (char *) malloc(255 * sizeof(char));
+    fscanf(stdin, "%s", value);
+    return {STRING, value};
+}
 
-    return {FLOAT, (char *) val};
+extern "C" DLLEXPORT T math_sqrt(T value) {
+    double doubleValue = __toFloat__(value);
+    double *sqrtVal = new double(std::sqrt(doubleValue));
+    return {FLOAT, (char *) sqrtVal};
 }
 
 extern "C" void __start__();

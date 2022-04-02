@@ -7,7 +7,7 @@
 
 #include <string>
 #include <stdexcept>
-#include <unordered_map>
+#include <map>
 
 namespace aux::ir {
 
@@ -30,13 +30,13 @@ namespace aux::ir {
             values[name] = value;
         }
 
-        inline std::unordered_map<std::string, T>& getInternal(){
+        inline std::map<std::string, T>& getInternal(){
             return values;
         }
 
     private:
 
-        std::unordered_map<std::string, T> values;
+        std::map<std::string, T> values;
 
     };
 

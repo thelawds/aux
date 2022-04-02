@@ -114,7 +114,7 @@ void TableAccessTerm::accept(aux::semantics::ProgramTreeVisitor *visitor) {
 FunctionCallTerm::FunctionCallTerm(const shared_ptr<ExpressionTree> &parent) : parent(parent) {}
 
 void FunctionCallTerm::accept(aux::semantics::ProgramTreeVisitor *visitor) {
-    // todo
+    visitor->visitFunctionCallTerm(this);
 }
 
 void FunctionCallTerm::append(const std::shared_ptr<ExpressionTree> &arg) {

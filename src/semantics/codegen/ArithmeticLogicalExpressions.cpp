@@ -85,6 +85,14 @@ void CodeGenerationVisitor::visitExpressionTerm(ExpressionTerm *term) {
 
 }
 
+void CodeGenerationVisitor::visitTableConstructorTerm(TableConstructorTerm *term) {
+    stackPush(
+            builder->CreateCall(
+                    module->getFunction("__getTable__")
+            )
+    );
+}
+
 void CodeGenerationVisitor::visitTableAccessTerm(aux::ir::program_tree::expression::TableAccessTerm *term) {
     auto parentReference = visit(term->parent);
     auto expression = visit(term->referencingExpression);
@@ -96,12 +104,20 @@ void CodeGenerationVisitor::visitTableAccessTerm(aux::ir::program_tree::expressi
     );
 }
 
-void CodeGenerationVisitor::visitTableConstructorTerm(TableConstructorTerm *term) {
-    stackPush(
-            builder->CreateCall(
-                    module->getFunction("__getTable__")
-            )
-    );
+void CodeGenerationVisitor::visitFunctionCallTerm(aux::ir::program_tree::expression::FunctionCallTerm *term) {
+    // todo: Now functions can only be second-order. Make sure in future to make the following work:
+    // x[expr] = function (params) body end
+    // x[expr](args)
+
+    auto funcName = std::dynamic_pointer_cast<aux::ir::program_tree::expression::ExpressionTerm>(term->parent)->value;
+    auto function = module->getFunction(funcName);
+    std::vector<Value *> args;
+
+    for (auto &arg: term->arguments) {
+        args.push_back(visit(arg));
+    }
+
+    stackPush(builder->CreateCall(function, args));
 }
 
 void CodeGenerationVisitor::visitArithmeticExpression(ArithmeticExpression *expression) {
